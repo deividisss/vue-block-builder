@@ -30,3 +30,14 @@ coverage
 *.tsbuildinfo
 
 *storybook.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+
+# TypeScript declaration file for environment variables
+env.d.ts
