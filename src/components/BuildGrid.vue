@@ -1,26 +1,84 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue';
+import { ref, type Ref, watch } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 
-withDefaults(
-  defineProps<{
-    buildGridSize: number;
-    columnCount?: number;
-    rowCount?: number;
-  }>(),
-  {
-    buildGridSize: 6,
-    columnCount: 1,
-    rowCount: 1,
+// Define and access props
+const props = defineProps<{
+  buildGridSize: number;
+  columnCount?: number;
+  rowCount?: number;
+}>();
+
+// Initialize reactive references
+const cells = ref<Cell[]>([]);
+const activeBuildColor: Ref<string> = ref('#a1d6b2');
+
+// Define the cell object structure
+interface Cell {
+  active: boolean;
+  row: number;
+  column: number;
+  index: number;
+}
+
+// Function to initialize cells based on columnCount and rowCount
+function initializeCells(columnCount: number, rowCount: number) {
+  cells.value = [];
+
+  for (let row = 0; row < rowCount; row++) {
+    for (let col = 0; col < columnCount; col++) {
+      const index = row * columnCount + col;
+      cells.value.push({
+        active: false,
+        row,
+        column: col,
+        index,
+      });
+    }
   }
+}
+
+// Watch for changes in columnCount and rowCount
+watch(
+  () => [props.columnCount, props.rowCount],
+  ([columnCount, rowCount]) => {
+    if (columnCount === undefined || rowCount === undefined) {
+      return; // Exit if props are not defined yet
+    }
+
+    initializeCells(columnCount, rowCount);
+  },
+  { immediate: true } // Initialize on component mount
 );
 
-const activeBuildColor: Ref<string> = ref('#a1d6b2');
-const cellColors = ref<boolean[]>([]);
-
+// Toggle cell activation state
 function buildCellContent(index: number): void {
   console.log('cell was clicked');
-  cellColors.value[index] = !cellColors.value[index];
+  const cell = cells.value.find((cell) => cell.index === index);
+  if (cell) {
+    cell.active = !cell.active;
+  }
+}
+
+function isStudVisible() {
+  console.log('columnCount', isCellBelowActive(cell));
+
+  return;
+}
+
+function isCellAboveActive(cell: Cell): boolean {
+  const columnCount = props.columnCount ?? 1;
+  const cellAboveIndex = (cell.row - 1) * columnCount + cell.column;
+  const cellAbove = cells.value.find((c) => c.index === cellAboveIndex);
+  return cellAbove ? cellAbove.active : false;
+}
+
+// Check if the cell below is active
+function isCellBelowActive(cell: Cell): boolean {
+  const columnCount = props.columnCount ?? 1;
+  const cellBelowIndex = (cell.row + 1) * columnCount + cell.column;
+  const cellBelow = cells.value.find((c) => c.index === cellBelowIndex);
+  return cellBelow ? cellBelow.active : false;
 }
 </script>
 
@@ -38,12 +96,12 @@ function buildCellContent(index: number): void {
   >
     <div
       class="build-grid__cell"
-      v-for="index in columnCount * rowCount"
-      :key="index"
-      @click="buildCellContent(index)"
+      v-for="cell in cells"
+      :key="cell.index"
+      @click="buildCellContent(cell.index)"
     >
       <div class="build-block-wrapper">
-        <BuildBlock v-if="cellColors[index]" />
+        <BuildBlock v-if="cell.active" :has-stud="!isCellAboveActive(cell)" />
       </div>
     </div>
   </div>

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 defineProps<{
   msg?: string;
+  hasStud?: boolean;
 }>();
 </script>
 
 <template>
   <div class="build-block">
     <H1 v-if="msg">BuildBlock - {{ msg }}</H1>
-    <div class="build-block__stud"></div>
+    <div v-if ="hasStud" class="build-block__stud"></div>
     <div class="build-block__body"></div>
   </div>
 </template>
