@@ -25,6 +25,8 @@ interface Cell {
   column: number;
   index: number;
   hasOutline: boolean;
+  isStartCell: boolean;
+  isEndCell: boolean;
 }
 
 function initializeCells(columnCount: number, rowCount: number) {
@@ -39,6 +41,8 @@ function initializeCells(columnCount: number, rowCount: number) {
         column: col,
         index,
         hasOutline: false,
+        isStartCell: false,
+        isEndCell: false,
       });
     }
   }
@@ -94,6 +98,8 @@ function buildCellContent(index: number): void {
 
     if (cellRigt && !cellRigt.active) {
       cellRigt.active = true;
+      cellRigt.isEndCell = true;
+      cell.isStartCell = true;
     }
   }
 }
@@ -120,15 +126,25 @@ function isCellAboveActive(cell: Cell): boolean {
   >
     <div
       class="build-grid__cell"
-      :class="{ 'has-outline': cell.hasOutline }"
+      :class="{
+        'has-outline': cell.hasOutline,
+      }"
       v-for="cell in cells"
       :key="cell.index"
       @click="buildCellContent(cell.index)"
       @mouseover="setNextCellHoverOutline(cell, true)"
       @mouseleave="setNextCellHoverOutline(cell, false)"
     >
-      <div class="build-block-wrapper">
-        <BuildBlock v-if="cell.active" :has-stud="!isCellAboveActive(cell)" />
+      <div
+        class="build-block-wrapper"
+        :class="{ 'is-multiblock': cell.isStartCell || cell.isEndCell }"
+      >
+        <BuildBlock
+          v-if="cell.active"
+          :has-stud="!isCellAboveActive(cell)"
+          :is-start-part="cell.isStartCell"
+          :is-end-part="cell.isEndCell"
+        />
       </div>
     </div>
   </div>
@@ -141,6 +157,14 @@ function isCellAboveActive(cell: Cell): boolean {
   height: calc(100% + 2px);
   top: -1px;
   left: 2px;
+}
+
+.build-block-wrapper.is-multiblock {
+  position: absolute;
+  width: calc(100% - -1px);
+  height: calc(100% + 2px);
+  top: -1px;
+  left: 0px;
 }
 
 .build-grid {
