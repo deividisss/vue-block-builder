@@ -2,14 +2,28 @@
 defineProps<{
   msg?: string;
   hasStud?: boolean;
+  type?: '1x' | '2x';
+  isStartPart?: boolean;
+  isEndPart?: boolean;
 }>();
 </script>
 
 <template>
   <div class="build-block">
     <H1 v-if="msg">BuildBlock - {{ msg }}</H1>
-    <div v-if ="hasStud" class="build-block__stud"></div>
-    <div class="build-block__body"></div>
+    <div v-if="hasStud" class="build-block__stud"></div>
+    <div
+      v-if="!isStartPart && !isEndPart"
+      class="build-block__body build-block__body has-border-left has-border-right has-border-bottom has-border-top"
+    ></div>
+
+    <template v-if="isStartPart">
+      <div class="build-block__body has-border-left has-border-bottom has-border-top"></div>
+    </template>
+
+    <template v-if="isEndPart">
+      <div class="build-block__body has-border-right has-border-bottom has-border-top"></div>
+    </template>
   </div>
 </template>
 
@@ -29,11 +43,23 @@ h1 {
 .build-block__body {
   background-color: #a1d6b2;
   /* border: 0.2rem solid #434242; */
-  border-bottom: 0.2rem solid #434242;
-  border-left: 0.2rem solid #434242;
-  border-right: 0.2rem solid #434242;
-  border-top: 0.2rem solid #434242;
   position: relative;
+}
+
+.has-border-left {
+  border-left: 0.2rem solid #434242;
+}
+
+.has-border-bottom {
+  border-bottom: 0.2rem solid #434242;
+}
+
+.has-border-right {
+  border-right: 0.2rem solid #434242;
+}
+
+.has-border-top {
+  border-top: 0.2rem solid #434242;
 }
 
 .build-block__body--fixed-size {

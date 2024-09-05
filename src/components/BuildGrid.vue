@@ -2,26 +2,31 @@
 import { ref, type Ref, watch } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 
-// Define and access props
 const props = defineProps<{
-  buildGridSize: number;
+  buildGridSize?: number;
   columnCount?: number;
   rowCount?: number;
+  activeBuildBlockType?: BuildBlockType;
 }>();
 
-// Initialize reactive references
+const BUILD_BLOCK_TYPES = {
+  ONE_X: '1x',
+  TWO_X: '2x',
+} as const;
+
+type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
+
 const cells = ref<Cell[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 
-// Define the cell object structure
 interface Cell {
   active: boolean;
   row: number;
   column: number;
   index: number;
+  hasOutline: boolean;
 }
 
-// Function to initialize cells based on columnCount and rowCount
 function initializeCells(columnCount: number, rowCount: number) {
   cells.value = [];
 
@@ -33,37 +38,64 @@ function initializeCells(columnCount: number, rowCount: number) {
         row,
         column: col,
         index,
+        hasOutline: false,
       });
     }
   }
 }
 
-// Watch for changes in columnCount and rowCount
 watch(
   () => [props.columnCount, props.rowCount],
   ([columnCount, rowCount]) => {
     if (columnCount === undefined || rowCount === undefined) {
-      return; // Exit if props are not defined yet
+      return;
     }
 
     initializeCells(columnCount, rowCount);
   },
-  { immediate: true } // Initialize on component mount
+  { immediate: true }
 );
 
-// Toggle cell activation state
-function buildCellContent(index: number): void {
-  console.log('cell was clicked');
-  const cell = cells.value.find((cell) => cell.index === index);
-  if (cell) {
-    cell.active = !cell.active;
+function getCellRightIndex(cell: Cell): number {
+  const columnCount = props.columnCount ?? 1;
+  return cell.row * columnCount + (cell.column + 1);
+}
+
+function isCellRightActive(cell: Cell): boolean {
+  const cellRightIndex = getCellRightIndex(cell);
+  const cellRight = cells.value.find((c) => c.index === cellRightIndex);
+  return cellRight ? cellRight.active : false;
+}
+
+function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
+  const columnCount = props.columnCount ?? 1;
+  const nextCellIndex = cell.row * columnCount + (cell.column + 1);
+  const nextCell = cells.value.find((c) => c.index === nextCellIndex);
+
+  // Check if nextCell exists and activeBuildBlockType is not '1x'
+  if (nextCell && props.activeBuildBlockType !== BUILD_BLOCK_TYPES.ONE_X) {
+    nextCell.hasOutline = isHovered;
   }
 }
 
-function isStudVisible() {
-  console.log('columnCount', isCellBelowActive(cell));
+function buildCellContent(index: number): void {
+  console.log('cell was clicked');
+  const cell = cells.value.find((cell) => cell.index === index);
+  if (!cell) return;
 
-  return;
+  cell.active = !cell.active;
+
+  console.log('isCellRightActive(cell)', isCellRightActive(cell));
+  if (props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X && !isCellRightActive(cell)) {
+    const rightCellIndex = getCellRightIndex(cell);
+    console.log('rightCellIndex', rightCellIndex);
+
+    const cellRigt = cells.value.find((cell) => cell.index === rightCellIndex);
+
+    if (cellRigt && !cellRigt.active) {
+      cellRigt.active = true;
+    }
+  }
 }
 
 function isCellAboveActive(cell: Cell): boolean {
@@ -72,14 +104,6 @@ function isCellAboveActive(cell: Cell): boolean {
   const cellAbove = cells.value.find((c) => c.index === cellAboveIndex);
   return cellAbove ? cellAbove.active : false;
 }
-
-// Check if the cell below is active
-function isCellBelowActive(cell: Cell): boolean {
-  const columnCount = props.columnCount ?? 1;
-  const cellBelowIndex = (cell.row + 1) * columnCount + cell.column;
-  const cellBelow = cells.value.find((c) => c.index === cellBelowIndex);
-  return cellBelow ? cellBelow.active : false;
-}
 </script>
 
 <template>
@@ -87,18 +111,21 @@ function isCellBelowActive(cell: Cell): boolean {
     Active Build color = {{ activeBuildColor }}
     <div class="active-build-color" :style="{ backgroundColor: activeBuildColor }"></div>
   </div>
-  {{ 'Size=' + columnCount * rowCount }} | Row count = {{ rowCount }} | Column count =
-  {{ columnCount }} <br /><br />
+  {{ 'Size=' + (props.columnCount ?? 0) * (props.rowCount ?? 0) }} | Row count =
+  {{ props.rowCount ?? 0 }} | Column count = {{ props.columnCount ?? 0 }} <br /><br />
 
   <div
     class="build-grid"
-    :style="{ gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))` }"
+    :style="{ gridTemplateColumns: `repeat(${props.columnCount}, minmax(0, 1fr))` }"
   >
     <div
       class="build-grid__cell"
+      :class="{ 'has-outline': cell.hasOutline }"
       v-for="cell in cells"
       :key="cell.index"
       @click="buildCellContent(cell.index)"
+      @mouseover="setNextCellHoverOutline(cell, true)"
+      @mouseleave="setNextCellHoverOutline(cell, false)"
     >
       <div class="build-block-wrapper">
         <BuildBlock v-if="cell.active" :has-stud="!isCellAboveActive(cell)" />
@@ -128,9 +155,11 @@ function isCellBelowActive(cell: Cell): boolean {
   background-color: #e1bee7;
   aspect-ratio: 1 / 1;
   position: relative;
-  transition:
-    outline 0.2s ease-out,
-    outline-offset 0.1s ease-out;
+}
+
+.build-grid__cell.has-outline {
+  outline: 3px dotted #ffeb3b;
+  outline-offset: -1px;
 }
 
 .build-grid__cell:hover {

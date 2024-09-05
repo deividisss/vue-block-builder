@@ -8,21 +8,6 @@ import BuildBlock from '@/components/BuildBlock.vue';
     <div>
       <BlockBuilderStudio />
     </div>
-    <div>
-      <ul class="titles">
-        <BuildBlock msg="1x" />
-        <BuildBlock msg="1x" />
-      </ul>
-    </div>
-
-    <div>
-      <ul>
-        <BuildBlock />
-        <BuildBlock />
-        <BuildBlock />
-        <BuildBlock />
-      </ul>
-    </div>
   </main>
 </template>
 
