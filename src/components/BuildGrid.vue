@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, type Ref, watch } from 'vue';
 import BuildBlock from './BuildBlock.vue';
+import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils';
+import type { Cell } from '@/types/cell';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -19,16 +21,6 @@ type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES]
 const cells = ref<Cell[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 
-interface Cell {
-  active: boolean;
-  row: number;
-  column: number;
-  index: number;
-  hasOutline: boolean;
-  isStartCell: boolean;
-  isEndCell: boolean;
-}
-
 function initializeCells(columnCount: number, rowCount: number) {
   cells.value = [];
 
@@ -37,8 +29,8 @@ function initializeCells(columnCount: number, rowCount: number) {
       const index = row * columnCount + col;
       cells.value.push({
         active: false,
-        row,
-        column: col,
+        rowIndex: row,
+        columnIndex: col,
         index,
         hasOutline: false,
         isStartCell: false,
@@ -60,20 +52,26 @@ watch(
   { immediate: true }
 );
 
-function getCellRightIndex(cell: Cell): number {
-  const columnCount = props.columnCount ?? 1;
-  return cell.row * columnCount + (cell.column + 1);
-}
-
 function isCellRightActive(cell: Cell): boolean {
-  const cellRightIndex = getCellRightIndex(cell);
+  const { rowIndex, columnIndex } = cell;
+
+  if (!rowIndex || !columnIndex) return false;
+
+  const columnCount = props.columnCount ?? 1;
+  const cellRightIndex = getCellRightIndex(rowIndex, columnIndex, columnCount);
   const cellRight = cells.value.find((c) => c.index === cellRightIndex);
   return cellRight ? cellRight.active : false;
 }
 
 function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
+  const { columnIndex, rowIndex } = cell;
+
+  if (!props.columnCount || props.columnCount <= 0) return;
+  if (rowIndex == null || columnIndex == null) return;
+  if (!hasRightAdjacentColumn(columnIndex, props.columnCount)) return;
+
   const columnCount = props.columnCount ?? 1;
-  const nextCellIndex = cell.row * columnCount + (cell.column + 1);
+  const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
   const nextCell = cells.value.find((c) => c.index === nextCellIndex);
 
   // Check if nextCell exists and activeBuildBlockType is not '1x'
@@ -90,8 +88,10 @@ function buildCellContent(index: number): void {
   cell.active = !cell.active;
 
   console.log('isCellRightActive(cell)', isCellRightActive(cell));
+  const columnCount = props.columnCount ?? 1;
+
   if (props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X && !isCellRightActive(cell)) {
-    const rightCellIndex = getCellRightIndex(cell);
+    const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
     console.log('rightCellIndex', rightCellIndex);
 
     const cellRigt = cells.value.find((cell) => cell.index === rightCellIndex);
@@ -106,7 +106,9 @@ function buildCellContent(index: number): void {
 
 function isCellAboveActive(cell: Cell): boolean {
   const columnCount = props.columnCount ?? 1;
-  const cellAboveIndex = (cell.row - 1) * columnCount + cell.column;
+  const { rowIndex, columnIndex } = cell;
+
+  const cellAboveIndex = (cell.rowIndex - 1) * columnCount + cell.columnIndex;
   const cellAbove = cells.value.find((c) => c.index === cellAboveIndex);
   return cellAbove ? cellAbove.active : false;
 }
