@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, type Ref, watch } from 'vue';
 import BuildBlock from './BuildBlock.vue';
-import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils';
+import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
 
 const props = defineProps<{

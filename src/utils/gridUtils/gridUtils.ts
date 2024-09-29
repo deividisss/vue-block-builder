@@ -1,3 +1,5 @@
+// TODO add Tests
+
 export function hasRightAdjacentColumn(currentColumnIndex: number, columnCount: number): boolean {
   return currentColumnIndex + 1 < columnCount;
 }
