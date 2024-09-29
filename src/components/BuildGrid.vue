@@ -35,6 +35,7 @@ function initializeCells(columnCount: number, rowCount: number) {
         columnIndex: col,
         index,
         hasOutline: false,
+        disabled: false,
         isStartCell: false,
         isEndCell: false,
       });
@@ -76,6 +77,7 @@ function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
 
   if (nextCell && props.activeBuildBlockType !== BUILD_BLOCK_TYPES.ONE_X) {
     nextCell.hasOutline = isHovered;
+    nextCell.disabled = isHovered;
   }
 }
 
@@ -164,6 +166,7 @@ function isCellInactiveForBuild(cell: Cell): boolean {
       >
         <BuildBlock
           v-if="cell.active"
+          :is-disabled="cell.disabled"
           :has-stud="!isCellAboveActive(cell)"
           :is-start-part="cell.isStartCell"
           :is-end-part="cell.isEndCell"

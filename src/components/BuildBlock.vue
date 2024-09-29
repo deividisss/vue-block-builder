@@ -5,11 +5,17 @@ defineProps<{
   type?: '1x' | '2x';
   isStartPart?: boolean;
   isEndPart?: boolean;
+  isDisabled?: boolean;
 }>();
 </script>
 
 <template>
-  <div class="build-block">
+  <div
+    class="build-block"
+    :class="{
+      'is-inactive': isDisabled,
+    }"
+  >
     <H1 v-if="msg">BuildBlock - {{ msg }}</H1>
     <div v-if="hasStud" class="build-block__stud"></div>
     <div
@@ -44,6 +50,14 @@ h1 {
   background-color: #a1d6b2;
   /* border: 0.2rem solid #434242; */
   position: relative;
+}
+
+.build-block.is-inactive .build-block__body {
+  background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
+}
+
+.build-block.is-inactive .build-block__stud {
+  background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
 }
 
 .has-border-left {
@@ -90,5 +104,9 @@ h1 {
   width: 20%;
   height: 10%;
   top: -10%;
+}
+
+.build-block__stud.is-nactive {
+  background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
 }
 </style>

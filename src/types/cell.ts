@@ -6,4 +6,5 @@ export interface Cell {
   hasOutline: boolean;
   isStartCell: boolean;
   isEndCell: boolean;
+  disabled: boolean;
 }
