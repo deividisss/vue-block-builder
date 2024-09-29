@@ -19,7 +19,9 @@ const BUILD_BLOCK_TYPES = {
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const cells = ref<Cell[]>([]);
+const renderedBuildBlocks = ref([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
+const hoverColor: Ref<string> = ref('red');
 
 function initializeCells(columnCount: number, rowCount: number) {
   cells.value = [];
@@ -55,8 +57,6 @@ watch(
 function isCellRightActive(cell: Cell): boolean {
   const { rowIndex, columnIndex } = cell;
 
-  if (!rowIndex || !columnIndex) return false;
-
   const columnCount = props.columnCount ?? 1;
   const cellRightIndex = getCellRightIndex(rowIndex, columnIndex, columnCount);
   const cellRight = cells.value.find((c) => c.index === cellRightIndex);
@@ -74,7 +74,6 @@ function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
   const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
   const nextCell = cells.value.find((c) => c.index === nextCellIndex);
 
-  // Check if nextCell exists and activeBuildBlockType is not '1x'
   if (nextCell && props.activeBuildBlockType !== BUILD_BLOCK_TYPES.ONE_X) {
     nextCell.hasOutline = isHovered;
   }
@@ -112,6 +111,27 @@ function isCellAboveActive(cell: Cell): boolean {
   const cellAbove = cells.value.find((c) => c.index === cellAboveIndex);
   return cellAbove ? cellAbove.active : false;
 }
+
+function isCellInactiveForBuild(cell: Cell): boolean {
+  const { columnIndex } = cell;
+
+  if (props.columnCount == null || columnIndex == null) {
+    return false;
+  }
+
+  const isTwoXBlock = props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X;
+  const hasRightAdjacent = hasRightAdjacentColumn(columnIndex, props.columnCount);
+  const isRightCellActive = isCellRightActive(cell);
+
+  const isInactiveDueToNoRightAdjacent = isTwoXBlock && !hasRightAdjacent;
+  const isInactiveDueToRightCellActive = isTwoXBlock && isRightCellActive;
+
+  if (isInactiveDueToNoRightAdjacent || isInactiveDueToRightCellActive) {
+    return true;
+  }
+
+  return false;
+}
 </script>
 
 <template>
@@ -130,6 +150,7 @@ function isCellAboveActive(cell: Cell): boolean {
       class="build-grid__cell"
       :class="{
         'has-outline': cell.hasOutline,
+        'is-inactive': isCellInactiveForBuild(cell),
       }"
       v-for="cell in cells"
       :key="cell.index"
@@ -190,6 +211,11 @@ function isCellAboveActive(cell: Cell): boolean {
 
 .build-grid__cell:hover {
   outline: 3px dotted #ffeb3b;
+  outline-offset: -1px;
+}
+
+.build-grid__cell.is-inactive:hover {
+  outline: 3px dotted red;
   outline-offset: -1px;
 }
 
