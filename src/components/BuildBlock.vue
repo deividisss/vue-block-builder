@@ -54,10 +54,12 @@ h1 {
 
 .build-block.is-inactive .build-block__body {
   background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
+  cursor: not-allowed;
 }
 
 .build-block.is-inactive .build-block__stud {
   background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
+  cursor: not-allowed;
 }
 
 .has-border-left {

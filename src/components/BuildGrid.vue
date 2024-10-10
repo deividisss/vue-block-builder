@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Ref, watch } from 'vue';
+import { ref, type Ref, watch, computed } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
@@ -35,6 +35,7 @@ function initializeCells(columnCount: number, rowCount: number) {
         columnIndex: col,
         index,
         hasOutline: false,
+        hasDisabledOutline: false,
         disabled: false,
         isStartCell: false,
         isEndCell: false,
@@ -64,19 +65,39 @@ function isCellRightActive(cell: Cell): boolean {
   return cellRight ? cellRight.active : false;
 }
 
-function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
-  const { columnIndex, rowIndex } = cell;
+function setCellHoverOutline(cell: Cell, isHovered: boolean): void {
+  const { active, columnIndex, rowIndex } = cell;
 
+  if (active) {
+    cell.disabled = isHovered;
+    cell.hasOutline = isHovered;
+    cell.hasDisabledOutline = isHovered;
+  }
+
+  if (!isTwoXBlock.value) return;
   if (!props.columnCount || props.columnCount <= 0) return;
   if (rowIndex == null || columnIndex == null) return;
-  if (!hasRightAdjacentColumn(columnIndex, props.columnCount)) return;
 
-  const columnCount = props.columnCount ?? 1;
-  const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
-  const nextCell = cells.value.find((c) => c.index === nextCellIndex);
+  if (!hasRightAdjacentColumn(columnIndex, props.columnCount)) {
+    cell.hasDisabledOutline = isHovered;
+    return;
+  }
 
-  if (nextCell && props.activeBuildBlockType !== BUILD_BLOCK_TYPES.ONE_X) {
-    nextCell.hasOutline = isHovered;
+  const nextCell = getNextCell(cell);
+
+  if (!nextCell) return;
+  setNextCellHoverOutline(nextCell, cell, isHovered);
+}
+
+function setNextCellHoverOutline(nextCell: Cell, cell: Cell, isHovered: boolean): void {
+  nextCell.hasOutline = isHovered;
+
+  if (cell.active || nextCell.active) {
+    cell.hasDisabledOutline = isHovered;
+    nextCell.hasDisabledOutline = isHovered;
+  }
+
+  if (nextCell.active) {
     nextCell.disabled = isHovered;
   }
 }
@@ -84,25 +105,31 @@ function setNextCellHoverOutline(cell: Cell, isHovered: boolean): void {
 function buildCellContent(index: number): void {
   console.log('cell was clicked');
   const cell = cells.value.find((cell) => cell.index === index);
-  if (!cell) return;
+  if (!cell || cell.active) return;
 
-  cell.active = !cell.active;
-
-  console.log('isCellRightActive(cell)', isCellRightActive(cell));
-  const columnCount = props.columnCount ?? 1;
-
-  if (props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X && !isCellRightActive(cell)) {
-    const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
-    console.log('rightCellIndex', rightCellIndex);
-
-    const cellRigt = cells.value.find((cell) => cell.index === rightCellIndex);
-
-    if (cellRigt && !cellRigt.active) {
-      cellRigt.active = true;
-      cellRigt.isEndCell = true;
-      cell.isStartCell = true;
-    }
+  if (!isTwoXBlock.value) {
+    cell.active = true;
+    return;
   }
+
+  const columnCount = props.columnCount ?? 1;
+  const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
+  const cellRight = cells.value.find((cell) => cell.index === rightCellIndex);
+
+  if (isTwoXBlock.value && !isCellRightActive(cell) && cellRight) {
+    cell.active = true;
+    cellRight.active = true;
+    cellRight.disabled = false;
+    cellRight.hasOutline = false;
+    cellRight.isEndCell = true;
+    cell.isStartCell = true;
+  }
+}
+
+function getNextCell(cell: Cell): Cell | undefined {
+  const columnCount = props.columnCount ?? 1;
+  const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
+  return cells.value.find((c) => c.index === nextCellIndex);
 }
 
 function isCellAboveActive(cell: Cell): boolean {
@@ -114,26 +141,9 @@ function isCellAboveActive(cell: Cell): boolean {
   return cellAbove ? cellAbove.active : false;
 }
 
-function isCellInactiveForBuild(cell: Cell): boolean {
-  const { columnIndex } = cell;
-
-  if (props.columnCount == null || columnIndex == null) {
-    return false;
-  }
-
-  const isTwoXBlock = props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X;
-  const hasRightAdjacent = hasRightAdjacentColumn(columnIndex, props.columnCount);
-  const isRightCellActive = isCellRightActive(cell);
-
-  const isInactiveDueToNoRightAdjacent = isTwoXBlock && !hasRightAdjacent;
-  const isInactiveDueToRightCellActive = isTwoXBlock && isRightCellActive;
-
-  if (isInactiveDueToNoRightAdjacent || isInactiveDueToRightCellActive) {
-    return true;
-  }
-
-  return false;
-}
+const isTwoXBlock = computed(() => {
+  return props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X;
+});
 </script>
 
 <template>
@@ -152,13 +162,14 @@ function isCellInactiveForBuild(cell: Cell): boolean {
       class="build-grid__cell"
       :class="{
         'has-outline': cell.hasOutline,
-        'is-inactive': isCellInactiveForBuild(cell),
+        'has-content': cell.active,
+        'is-inactive': cell.hasDisabledOutline,
       }"
       v-for="cell in cells"
       :key="cell.index"
       @click="buildCellContent(cell.index)"
-      @mouseover="setNextCellHoverOutline(cell, true)"
-      @mouseleave="setNextCellHoverOutline(cell, false)"
+      @mouseenter="setCellHoverOutline(cell, true)"
+      @mouseleave="setCellHoverOutline(cell, false)"
     >
       <div
         class="build-block-wrapper"
@@ -212,14 +223,27 @@ function isCellInactiveForBuild(cell: Cell): boolean {
   outline-offset: -1px;
 }
 
+.build-grid__cell.has-outline.is-inactive {
+  outline: 3px dotted red;
+  z-index: 100;
+  outline-offset: 0px;
+}
+
 .build-grid__cell:hover {
   outline: 3px dotted #ffeb3b;
   outline-offset: -1px;
 }
 
+.build-grid__cell.has-content:hover {
+  outline: unset;
+  outline-offset: unset;
+}
+
 .build-grid__cell.is-inactive:hover {
   outline: 3px dotted red;
-  outline-offset: -1px;
+  z-index: 100;
+  outline-offset: 0px;
+  cursor: not-allowed;
 }
 
 .active-build-color {

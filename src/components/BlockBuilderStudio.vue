@@ -13,7 +13,8 @@ type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES]
 
 const columnCount = ref(6);
 const rowCount = ref(3);
-const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.ONE_X);
+const isDeleteModeActive = ref(false);
+const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
 
 const setActiveBuildBlockType = (type: BuildBlockType) => {
   activeBuildBlockType.value = type;
@@ -48,6 +49,13 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
     >
       <BuildBlock hasStud isStartPart />
       <BuildBlock hasStud isEndPart />
+    </li>
+
+    <li
+      :class="{ active: isDeleteModeActive, 'two-x': true }"
+      @click="isDeleteModeActive = !isDeleteModeActive"
+    >
+      Delete mode
     </li>
   </ul>
 </template>

@@ -4,6 +4,7 @@ export interface Cell {
   columnIndex: number;
   index: number;
   hasOutline: boolean;
+  hasDisabledOutline: boolean;
   isStartCell: boolean;
   isEndCell: boolean;
   disabled: boolean;
