@@ -5,7 +5,7 @@ const meta = {
   title: 'Components/BuildGrid',
   component: BuildGrid,
   args: {
-    // buildGridSize: 6,
+    isDeleteModeActive: false,
   },
 } satisfies Meta<typeof BuildGrid>;
 
