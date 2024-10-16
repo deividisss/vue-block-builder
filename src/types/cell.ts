@@ -8,4 +8,5 @@ export interface Cell {
   isStartCell: boolean;
   isEndCell: boolean;
   disabled: boolean;
+  renderedBuildBLockId?: string;
 }

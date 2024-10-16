@@ -31,6 +31,7 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
       :activeBuildBlockType="activeBuildBlockType"
       :columnCount="columnCount"
       :rowCount="rowCount"
+      :isDeleteModeActive="isDeleteModeActive"
     />
   </div>
 

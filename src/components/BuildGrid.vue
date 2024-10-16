@@ -3,12 +3,14 @@ import { ref, type Ref, watch, computed } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
+import { v4 as uuidv4 } from 'uuid';
 
 const props = defineProps<{
   buildGridSize?: number;
   columnCount?: number;
   rowCount?: number;
   activeBuildBlockType?: BuildBlockType;
+  isDeleteModeActive: boolean;
 }>();
 
 const BUILD_BLOCK_TYPES = {
@@ -18,8 +20,13 @@ const BUILD_BLOCK_TYPES = {
 
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
+interface RenderedBuildBlock {
+  id: string;
+  cellIndexes: number[];
+}
+
 const cells = ref<Cell[]>([]);
-const renderedBuildBlocks = ref([]);
+const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 const hoverColor: Ref<string> = ref('red');
 
@@ -106,24 +113,44 @@ function buildCellContent(index: number): void {
   console.log('cell was clicked');
   const cell = cells.value.find((cell) => cell.index === index);
   if (!cell || cell.active) return;
+  const newUniqueId = uuidv4();
 
   if (!isTwoXBlock.value) {
     cell.active = true;
+
+    const newRenderedBuildGBLock: RenderedBuildBlock = {
+      id: newUniqueId,
+      cellIndexes: [cell.index],
+    };
+
+    renderedBuildBlocks.value.push(newRenderedBuildGBLock);
     return;
   }
 
   const columnCount = props.columnCount ?? 1;
-  const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
-  const cellRight = cells.value.find((cell) => cell.index === rightCellIndex);
 
-  if (isTwoXBlock.value && !isCellRightActive(cell) && cellRight) {
+  if (!hasRightAdjacentColumn(cell.columnIndex, columnCount)) return;
+
+  const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
+  const cellRight = cells.value.find((cell) => cell.index === rightCellIndex)!;
+
+  if (!isCellRightActive(cell) && cellRight) {
     cell.active = true;
     cellRight.active = true;
     cellRight.disabled = false;
     cellRight.hasOutline = false;
     cellRight.isEndCell = true;
     cell.isStartCell = true;
+    cell.renderedBuildBLockId = newUniqueId;
+    cellRight.renderedBuildBLockId = newUniqueId;
   }
+
+  const newRenderedBuildGBLock: RenderedBuildBlock = {
+    id: newUniqueId,
+    cellIndexes: [cell.index, cellRight.index],
+  };
+
+  renderedBuildBlocks.value.push(newRenderedBuildGBLock);
 }
 
 function getNextCell(cell: Cell): Cell | undefined {
@@ -148,7 +175,8 @@ const isTwoXBlock = computed(() => {
 
 <template>
   <div class="wrapper">
-    Active Build color = {{ activeBuildColor }}
+    <div>Is Delete mode active = {{ isDeleteModeActive }}</div>
+    <div>Active Build color = {{ activeBuildColor }}</div>
     <div class="active-build-color" :style="{ backgroundColor: activeBuildColor }"></div>
   </div>
   {{ 'Size=' + (props.columnCount ?? 0) * (props.rowCount ?? 0) }} | Row count =
