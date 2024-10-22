@@ -10,10 +10,10 @@ const navIsVisible = ref(true);
     <nav>
       <ul>
         <li>
-          <RouterLink to="/">Home</RouterLink>
+          <RouterLink to="/">Block Builder</RouterLink>
         </li>
         <li>
-          <RouterLink to="/about">About</RouterLink>
+          <!-- <RouterLink to="/about">| Explore builds</RouterLink> -->
         </li>
       </ul>
     </nav>
@@ -26,7 +26,8 @@ const navIsVisible = ref(true);
 header {
   display: flex;
   justify-content: center;
-  padding: 1rem;
+  padding: 2rem;
+  font-size: xxx-large;
 }
 
 ul {

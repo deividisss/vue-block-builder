@@ -4,6 +4,7 @@ import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
 import { v4 as uuidv4 } from 'uuid';
+import { CURSOR_TYPES } from '@/types/cursorConstants';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -72,6 +73,23 @@ function isCellRightActive(cell: Cell): boolean {
   return cellRight ? cellRight.active : false;
 }
 
+function setCellHoverOutlineDeleteMode(
+  renderedBuildBLockId: string | undefined,
+  isHovered: boolean
+): void {
+  const renderedBuildBlock: RenderedBuildBlock | undefined = renderedBuildBlocks.value.find(
+    (renderedBuildBlock) => renderedBuildBlock.id === renderedBuildBLockId
+  );
+
+  if (!renderedBuildBlock) return;
+
+  renderedBuildBlock.cellIndexes.forEach((cellIndex) => {
+    cells.value[cellIndex].hasOutline = isHovered;
+    cells.value[cellIndex].hasDisabledOutline = isHovered;
+    cells.value[cellIndex].disabled = isHovered;
+  });
+}
+
 function setCellHoverOutline(cell: Cell, isHovered: boolean): void {
   const { active, columnIndex, rowIndex } = cell;
 
@@ -109,6 +127,33 @@ function setNextCellHoverOutline(nextCell: Cell, cell: Cell, isHovered: boolean)
   }
 }
 
+function removeBuildBlock(index: number) {
+  const cell = cells.value.find((cell) => cell.index === index);
+  const renderedBuildBLockId = cell?.renderedBuildBLockId;
+  console.log('renderedBuildBLockId', renderedBuildBLockId);
+
+  const renderedBuildBlock: RenderedBuildBlock | undefined = renderedBuildBlocks.value.find(
+    (renderedBuildBlock) => renderedBuildBlock.id === renderedBuildBLockId
+  );
+
+  console.log('renderedBuildBlock', renderedBuildBlock);
+  if (!renderedBuildBlock) return;
+  console.log('renderedBuildBlock', renderedBuildBlock);
+
+  renderedBuildBlock.cellIndexes.forEach((cellIndex) => {
+    cells.value[cellIndex].active = false;
+    cells.value[cellIndex].hasOutline = false;
+    cells.value[cellIndex].hasDisabledOutline = false;
+    cells.value[cellIndex].disabled = false;
+    cells.value[cellIndex].isStartCell = false;
+    cells.value[cellIndex].isEndCell = false;
+  });
+
+  renderedBuildBlocks.value = renderedBuildBlocks.value.filter(
+    (renderedBuildBlock) => renderedBuildBlock.id !== renderedBuildBLockId
+  );
+}
+
 function buildCellContent(index: number): void {
   console.log('cell was clicked');
   const cell = cells.value.find((cell) => cell.index === index);
@@ -117,6 +162,7 @@ function buildCellContent(index: number): void {
 
   if (!isTwoXBlock.value) {
     cell.active = true;
+    cell.renderedBuildBLockId = newUniqueId;
 
     const newRenderedBuildGBLock: RenderedBuildBlock = {
       id: newUniqueId,
@@ -124,6 +170,7 @@ function buildCellContent(index: number): void {
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
+    console.log('testas');
     return;
   }
 
@@ -171,17 +218,18 @@ function isCellAboveActive(cell: Cell): boolean {
 const isTwoXBlock = computed(() => {
   return props.activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X;
 });
+
+const getCursorType = computed(() => {
+  return (cell: Cell) => {
+    if (props.isDeleteModeActive || !cell.disabled) {
+      return CURSOR_TYPES.GRAB;
+    }
+    return CURSOR_TYPES.NOT_ALLOWED;
+  };
+});
 </script>
 
 <template>
-  <div class="wrapper">
-    <div>Is Delete mode active = {{ isDeleteModeActive }}</div>
-    <div>Active Build color = {{ activeBuildColor }}</div>
-    <div class="active-build-color" :style="{ backgroundColor: activeBuildColor }"></div>
-  </div>
-  {{ 'Size=' + (props.columnCount ?? 0) * (props.rowCount ?? 0) }} | Row count =
-  {{ props.rowCount ?? 0 }} | Column count = {{ props.columnCount ?? 0 }} <br /><br />
-
   <div
     class="build-grid"
     :style="{ gridTemplateColumns: `repeat(${props.columnCount}, minmax(0, 1fr))` }"
@@ -190,14 +238,22 @@ const isTwoXBlock = computed(() => {
       class="build-grid__cell"
       :class="{
         'has-outline': cell.hasOutline,
-        'has-content': cell.active,
         'is-inactive': cell.hasDisabledOutline,
+        'has-no-hover': cell.active || isDeleteModeActive,
       }"
       v-for="cell in cells"
       :key="cell.index"
-      @click="buildCellContent(cell.index)"
-      @mouseenter="setCellHoverOutline(cell, true)"
-      @mouseleave="setCellHoverOutline(cell, false)"
+      @click="isDeleteModeActive ? removeBuildBlock(cell.index) : buildCellContent(cell.index)"
+      @mouseenter="
+        isDeleteModeActive
+          ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, true)
+          : setCellHoverOutline(cell, true)
+      "
+      @mouseleave="
+        isDeleteModeActive
+          ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, false)
+          : setCellHoverOutline(cell, false)
+      "
     >
       <div
         class="build-block-wrapper"
@@ -209,6 +265,7 @@ const isTwoXBlock = computed(() => {
           :has-stud="!isCellAboveActive(cell)"
           :is-start-part="cell.isStartCell"
           :is-end-part="cell.isEndCell"
+          :cursor-type="getCursorType(cell)"
         />
       </div>
     </div>
@@ -262,8 +319,8 @@ const isTwoXBlock = computed(() => {
   outline-offset: -1px;
 }
 
-.build-grid__cell.has-content:hover {
-  outline: unset;
+.build-grid__cell.has-no-hover:hover {
+  outline: none;
   outline-offset: unset;
 }
 
@@ -271,7 +328,6 @@ const isTwoXBlock = computed(() => {
   outline: 3px dotted red;
   z-index: 100;
   outline-offset: 0px;
-  cursor: not-allowed;
 }
 
 .active-build-color {

@@ -5,7 +5,7 @@ import BuildBlock from '@/components/BuildBlock.vue';
 
 <template>
   <main>
-    <div>
+    <div class="content">
       <BlockBuilderStudio />
     </div>
   </main>
@@ -17,6 +17,10 @@ main {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+}
+
+.content {
+  width: 100%;
 }
 
 ul.titles {

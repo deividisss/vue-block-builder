@@ -1,20 +1,30 @@
 <script setup lang="ts">
-defineProps<{
-  msg?: string;
-  hasStud?: boolean;
-  type?: '1x' | '2x';
-  isStartPart?: boolean;
-  isEndPart?: boolean;
-  isDisabled?: boolean;
-}>();
-</script>
+import { CURSOR_TYPES, type CursorType } from '@/types/cursorConstants';
+import { defineProps, withDefaults } from 'vue';
 
+// Define props with cursoType type
+const props = withDefaults(
+  defineProps<{
+    msg?: string;
+    hasStud?: boolean;
+    type?: '1x' | '2x';
+    isStartPart?: boolean;
+    isEndPart?: boolean;
+    isDisabled?: boolean;
+    cursorType?: CursorType;
+  }>(),
+  {
+    cursorType: CURSOR_TYPES.DEFAULT as CursorType,
+  }
+);
+</script>
 <template>
   <div
     class="build-block"
     :class="{
       'is-inactive': isDisabled,
     }"
+    :style="{ cursor: cursorType }"
   >
     <H1 v-if="msg">BuildBlock - {{ msg }}</H1>
     <div v-if="hasStud" class="build-block__stud"></div>
@@ -22,7 +32,7 @@ defineProps<{
       v-if="!isStartPart && !isEndPart"
       class="build-block__body build-block__body has-border-left has-border-right has-border-bottom has-border-top"
     ></div>
-
+    <!-- {{ props.cursorType }} -->
     <template v-if="isStartPart">
       <div class="build-block__body has-border-left has-border-bottom has-border-top"></div>
     </template>
@@ -54,12 +64,12 @@ h1 {
 
 .build-block.is-inactive .build-block__body {
   background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
 }
 
 .build-block.is-inactive .build-block__stud {
   background: repeating-linear-gradient(-60deg, white 0, red 1px, red 10px, white 11px, white 20px);
-  cursor: not-allowed;
+  /* cursor: not-allowed; */
 }
 
 .has-border-left {
