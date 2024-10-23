@@ -72,6 +72,13 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
 </template>
 
 <style scoped>
+input[type='number'] {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid darkgrey;
+  font-size: large;
+}
+
 .build-block-studio {
   padding: 20px;
 }
@@ -81,7 +88,7 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
 }
 .input-list {
   display: flex;
-  gap: 8px;
+  gap: 30px;
   padding-bottom: 30px;
 }
 .build-block-list {

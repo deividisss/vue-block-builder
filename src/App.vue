@@ -10,7 +10,7 @@ const navIsVisible = ref(true);
     <nav>
       <ul>
         <li>
-          <RouterLink to="/">Block Builder</RouterLink>
+          <RouterLink to="/">BLOCK_BUILDER</RouterLink>
         </li>
         <li>
           <!-- <RouterLink to="/about">| Explore builds</RouterLink> -->
@@ -28,6 +28,12 @@ header {
   justify-content: center;
   padding: 2rem;
   font-size: xxx-large;
+}
+
+@media (max-width: 576px) {
+  header {
+    font-size: xx-large;
+  }
 }
 
 ul {
