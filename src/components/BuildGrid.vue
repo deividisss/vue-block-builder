@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Ref, watch, computed } from 'vue';
+import { ref, type Ref, watch, computed, defineExpose, onMounted } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
@@ -25,6 +25,37 @@ interface RenderedBuildBlock {
   id: string;
   cellIndexes: number[];
 }
+
+onMounted(() => {
+  const savedBlocks = localStorage.getItem('renderedBuildBlocks');
+  if (savedBlocks) {
+    const loadedBlocks: RenderedBuildBlock[] = JSON.parse(savedBlocks);
+    renderedBuildBlocks.value = loadedBlocks;
+
+    loadedBlocks.forEach((block) => {
+      block.cellIndexes.forEach((index) => {
+        const cell = cells.value[index];
+        if (cell) {
+          cell.active = true;
+          cell.renderedBuildBLockId = block.id;
+        }
+      });
+    });
+  }
+});
+
+function saveBuild(): void {
+  if (renderedBuildBlocks.value.length > 0) {
+    localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
+    alert('Build saved successfully!');
+  } else {
+    alert('No build data to save.');
+  }
+}
+
+defineExpose({
+  saveBuild,
+});
 
 const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
