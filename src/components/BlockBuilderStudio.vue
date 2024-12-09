@@ -25,6 +25,10 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
 const handleSaveClick = () => {
   buildGridRef.value?.saveBuild();
 };
+
+const handleClearGridClick = () => {
+  buildGridRef.value?.clearBuildGrid();
+};
 </script>
 
 <template>
@@ -74,6 +78,7 @@ const handleSaveClick = () => {
       >
         Delete mode
       </li>
+
       <li
         v-if="!isDeleteModeActive"
         class="delete-button"
@@ -81,6 +86,15 @@ const handleSaveClick = () => {
         @click="handleSaveClick"
       >
         SAVE
+      </li>
+
+      <li
+        v-if="!isDeleteModeActive"
+        class="delete-button"
+        :class="{ active: isDeleteModeActive, 'two-x': true }"
+        @click="handleClearGridClick"
+      >
+        Clear Grid
       </li>
     </ul>
   </div>

@@ -48,16 +48,26 @@ onMounted(() => {
 });
 
 function saveBuild(): void {
+  localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
+  localStorage.setItem('cells', JSON.stringify(cells.value));
+}
+
+function clearBuildGrid(): void {
   if (renderedBuildBlocks.value.length > 0) {
-    localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
-    localStorage.setItem('cells', JSON.stringify(cells.value));
-  } else {
-    alert('No build data to save.');
+    const userConfirmed = confirm('Do you really want to clear the entire grid?');
+
+    if (userConfirmed) {
+      renderedBuildBlocks.value = [];
+      initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+    } else {
+      console.log('Grid clear operation canceled.');
+    }
   }
 }
 
 defineExpose({
   saveBuild,
+  clearBuildGrid,
 });
 
 const cells = ref<Cell[]>([]);
