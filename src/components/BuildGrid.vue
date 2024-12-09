@@ -28,26 +28,29 @@ interface RenderedBuildBlock {
 
 onMounted(() => {
   const savedBlocks = localStorage.getItem('renderedBuildBlocks');
-  if (savedBlocks) {
-    const loadedBlocks: RenderedBuildBlock[] = JSON.parse(savedBlocks);
-    renderedBuildBlocks.value = loadedBlocks;
+  const savedCells = localStorage.getItem('cells');
 
-    loadedBlocks.forEach((block) => {
-      block.cellIndexes.forEach((index) => {
-        const cell = cells.value[index];
-        if (cell) {
-          cell.active = true;
-          cell.renderedBuildBLockId = block.id;
-        }
-      });
-    });
+  if (savedBlocks && savedCells) {
+    try {
+      renderedBuildBlocks.value = JSON.parse(savedBlocks) as RenderedBuildBlock[];
+    } catch (error) {
+      console.error('Failed to parse saved blocks:', error);
+      renderedBuildBlocks.value = [];
+    }
+
+    try {
+      cells.value = JSON.parse(savedCells) as Cell[];
+    } catch (error) {
+      console.error('Failed to parse saved blocks:', error);
+      cells.value = [];
+    }
   }
 });
 
 function saveBuild(): void {
   if (renderedBuildBlocks.value.length > 0) {
     localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
-    alert('Build saved successfully!');
+    localStorage.setItem('cells', JSON.stringify(cells.value));
   } else {
     alert('No build data to save.');
   }
