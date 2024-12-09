@@ -1,8 +1,8 @@
+<!-- Parent Component -->
 <script setup lang="ts">
+import { ref } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
-
-import { ref } from 'vue';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -16,8 +16,18 @@ const rowCount = ref(5);
 const isDeleteModeActive = ref(false);
 const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
 
+const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
+
 const setActiveBuildBlockType = (type: BuildBlockType) => {
   activeBuildBlockType.value = type;
+};
+
+const handleSaveClick = () => {
+  buildGridRef.value?.saveBuild();
+};
+
+const handleClearGridClick = () => {
+  buildGridRef.value?.clearBuildGrid();
 };
 </script>
 
@@ -34,6 +44,7 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
 
     <div>
       <BuildGrid
+        ref="buildGridRef"
         :activeBuildBlockType="activeBuildBlockType"
         :columnCount="columnCount"
         :rowCount="rowCount"
@@ -66,6 +77,24 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
         @click="isDeleteModeActive = !isDeleteModeActive"
       >
         Delete mode
+      </li>
+
+      <li
+        v-if="!isDeleteModeActive"
+        class="delete-button"
+        :class="{ active: isDeleteModeActive, 'two-x': true }"
+        @click="handleSaveClick"
+      >
+        SAVE
+      </li>
+
+      <li
+        v-if="!isDeleteModeActive"
+        class="delete-button"
+        :class="{ active: isDeleteModeActive, 'two-x': true }"
+        @click="handleClearGridClick"
+      >
+        Clear Grid
       </li>
     </ul>
   </div>

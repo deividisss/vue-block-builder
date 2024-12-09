@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Ref, watch, computed } from 'vue';
+import { ref, type Ref, watch, computed, defineExpose, onMounted } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
@@ -25,6 +25,50 @@ interface RenderedBuildBlock {
   id: string;
   cellIndexes: number[];
 }
+
+onMounted(() => {
+  const savedBlocks = localStorage.getItem('renderedBuildBlocks');
+  const savedCells = localStorage.getItem('cells');
+
+  if (savedBlocks && savedCells) {
+    try {
+      renderedBuildBlocks.value = JSON.parse(savedBlocks) as RenderedBuildBlock[];
+    } catch (error) {
+      console.error('Failed to parse saved blocks:', error);
+      renderedBuildBlocks.value = [];
+    }
+
+    try {
+      cells.value = JSON.parse(savedCells) as Cell[];
+    } catch (error) {
+      console.error('Failed to parse saved blocks:', error);
+      cells.value = [];
+    }
+  }
+});
+
+function saveBuild(): void {
+  localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
+  localStorage.setItem('cells', JSON.stringify(cells.value));
+}
+
+function clearBuildGrid(): void {
+  if (renderedBuildBlocks.value.length > 0) {
+    const userConfirmed = confirm('Do you really want to clear the entire grid?');
+
+    if (userConfirmed) {
+      renderedBuildBlocks.value = [];
+      initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+    } else {
+      console.log('Grid clear operation canceled.');
+    }
+  }
+}
+
+defineExpose({
+  saveBuild,
+  clearBuildGrid,
+});
 
 const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
