@@ -5,6 +5,7 @@ import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gri
 import type { Cell } from '@/types/cell';
 import { v4 as uuidv4 } from 'uuid';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
+import BuildGrid3D from './BuildGrid3D.vue';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -211,6 +212,11 @@ function buildCellContent(index: number): void {
     const newRenderedBuildGBLock: RenderedBuildBlock = {
       id: newUniqueId,
       cellIndexes: [cell.index],
+      cordinates: {
+        x: cell.columnIndex,
+        y: props.rowCount - cell.rowIndex - 1,
+        z: 0,
+      },
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
@@ -239,6 +245,11 @@ function buildCellContent(index: number): void {
   const newRenderedBuildGBLock: RenderedBuildBlock = {
     id: newUniqueId,
     cellIndexes: [cell.index, cellRight.index],
+    cordinates: {
+      x: cell.columnIndex,
+      y: props.rowCount - cell.rowIndex - 1,
+      z: 0,
+    },
   };
 
   renderedBuildBlocks.value.push(newRenderedBuildGBLock);
@@ -314,6 +325,8 @@ const getCursorType = computed(() => {
       </div>
     </div>
   </div>
+  <slot></slot>
+  <BuildGrid3D :renderedBuildBlocks="renderedBuildBlocks" :columnCount="columnCount" />
 </template>
 
 <style scoped>

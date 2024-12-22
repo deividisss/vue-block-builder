@@ -12,9 +12,9 @@ const BUILD_BLOCK_TYPES = {
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const columnCount = ref(10);
-const rowCount = ref(5);
+const rowCount = ref(4);
 const isDeleteModeActive = ref(false);
-const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
+const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.ONE_X);
 
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
 
@@ -49,54 +49,56 @@ const handleClearGridClick = () => {
         :columnCount="columnCount"
         :rowCount="rowCount"
         :isDeleteModeActive="isDeleteModeActive"
-      />
+      >
+        <br />
+        <ul class="build-block-list">
+          <li
+            v-if="!isDeleteModeActive"
+            :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.ONE_X }"
+            @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.ONE_X)"
+          >
+            <BuildBlock hasStud />
+          </li>
+
+          <li
+            v-if="!isDeleteModeActive"
+            :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X, 'two-x': true }"
+            @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.TWO_X)"
+          >
+            <BuildBlock hasStud isStartPart />
+            <BuildBlock hasStud isEndPart />
+          </li>
+
+          <li
+            class="delete-button"
+            :class="{ active: isDeleteModeActive, 'two-x': true }"
+            @click="isDeleteModeActive = !isDeleteModeActive"
+          >
+            Delete mode
+          </li>
+
+          <li
+            v-if="!isDeleteModeActive"
+            class="delete-button"
+            :class="{ active: isDeleteModeActive, 'two-x': true }"
+            @click="handleSaveClick"
+          >
+            SAVE
+          </li>
+
+          <li
+            v-if="!isDeleteModeActive"
+            class="delete-button"
+            :class="{ active: isDeleteModeActive, 'two-x': true }"
+            @click="handleClearGridClick"
+          >
+            Clear Grid
+          </li>
+        </ul>
+        <br />
+        <br />
+      </BuildGrid>
     </div>
-
-    <br />
-    <ul class="build-block-list">
-      <li
-        v-if="!isDeleteModeActive"
-        :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.ONE_X }"
-        @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.ONE_X)"
-      >
-        <BuildBlock hasStud />
-      </li>
-
-      <li
-        v-if="!isDeleteModeActive"
-        :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X, 'two-x': true }"
-        @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.TWO_X)"
-      >
-        <BuildBlock hasStud isStartPart />
-        <BuildBlock hasStud isEndPart />
-      </li>
-
-      <li
-        class="delete-button"
-        :class="{ active: isDeleteModeActive, 'two-x': true }"
-        @click="isDeleteModeActive = !isDeleteModeActive"
-      >
-        Delete mode
-      </li>
-
-      <li
-        v-if="!isDeleteModeActive"
-        class="delete-button"
-        :class="{ active: isDeleteModeActive, 'two-x': true }"
-        @click="handleSaveClick"
-      >
-        SAVE
-      </li>
-
-      <li
-        v-if="!isDeleteModeActive"
-        class="delete-button"
-        :class="{ active: isDeleteModeActive, 'two-x': true }"
-        @click="handleClearGridClick"
-      >
-        Clear Grid
-      </li>
-    </ul>
   </div>
 </template>
 
