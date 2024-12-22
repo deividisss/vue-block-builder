@@ -11,7 +11,7 @@ const props = defineProps<{
 // Function to create edges for each box
 const createEdges = (geometry: THREE.BufferGeometry) => {
   const edgesGeometry = new THREE.EdgesGeometry(geometry);
-  const edgesMaterial = new THREE.LineBasicMaterial({ color: 'white' });
+  const edgesMaterial = new THREE.LineBasicMaterial({ color: '#434242' });
   return new THREE.LineSegments(edgesGeometry, edgesMaterial);
 };
 </script>
@@ -25,7 +25,7 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
   </ul> -->
   <div class="build-grid-3d">
     <TresCanvas clear-color="#e1bee7" preset="realistic" enableProvideBridge>
-      <TresPerspectiveCamera :position="[9, 6, 7]" />
+      <TresPerspectiveCamera :position="[7, 7, 7]" />
       <OrbitControls />
 
       <!-- Box 1 with edges -->
@@ -60,6 +60,12 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 .build-grid-3d {
   margin: 0;
   padding: 0;
-  height: 800px;
+  height: 600px;
+}
+
+canvas {
+  border: 1px dashed grey;
+  border-radius: 6px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 </style>

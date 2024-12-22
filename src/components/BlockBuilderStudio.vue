@@ -50,14 +50,13 @@ const handleClearGridClick = () => {
         :rowCount="rowCount"
         :isDeleteModeActive="isDeleteModeActive"
       >
-        <br />
         <ul class="build-block-list">
           <li
             v-if="!isDeleteModeActive"
             :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.ONE_X }"
             @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.ONE_X)"
           >
-            <BuildBlock hasStud />
+            <BuildBlock hasStud cursor-type="POINTER" />
           </li>
 
           <li
@@ -65,8 +64,8 @@ const handleClearGridClick = () => {
             :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X, 'two-x': true }"
             @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.TWO_X)"
           >
-            <BuildBlock hasStud isStartPart />
-            <BuildBlock hasStud isEndPart />
+            <BuildBlock hasStud isStartPart cursor-type="POINTER" />
+            <BuildBlock hasStud isEndPart cursor-type="POINTER" />
           </li>
 
           <li
@@ -123,8 +122,16 @@ input[type='number'] {
   padding-bottom: 30px;
 }
 .build-block-list {
+  min-height: 68px;
   display: flex;
   gap: 20px;
+  border: 1px solid lightgrey;
+  border-top: none;
+  padding: 20px;
+  align-items: center;
+  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 12px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 
 .build-block-list li {
@@ -133,9 +140,9 @@ input[type='number'] {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #434242;
+  border: 2px solid lightgrey;
   cursor: pointer;
-  padding: 8px;
+  padding: 12px;
   border-radius: 8px;
   transition:
     background-color 0.3s,
@@ -154,6 +161,7 @@ input[type='number'] {
 .build-block-list li.delete-button {
   height: 40px;
   width: fit-content;
+  padding: 6px 12px;
 }
 
 .build-block-list li.active {
