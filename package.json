@@ -19,8 +19,11 @@
     "chromatic": "npx chromatic --project-token=$CHROMATIC_PROJECT_TOKEN"
   },
   "dependencies": {
+    "@tresjs/cientos": "^4.0.3",
+    "@tresjs/core": "^4.3.1",
     "pinia": "^2.1.7",
     "reset-css": "^5.0.2",
+    "three": "^0.171.0",
     "uuid": "^10.0.0",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3"
@@ -39,6 +42,7 @@
     "@tsconfig/node20": "^20.1.4",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.14.5",
+    "@types/three": "^0.171.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",

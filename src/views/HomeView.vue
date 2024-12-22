@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import BlockBuilderStudio from '@/components/BlockBuilderStudio.vue';
-import BuildBlock from '@/components/BuildBlock.vue';
+import BuildGrid3D from '@/components/BuildGrid3D.vue';
 </script>
 
 <template>
   <main>
     <div class="content">
       <BlockBuilderStudio />
+      <BuildGrid3D />
     </div>
   </main>
 </template>
