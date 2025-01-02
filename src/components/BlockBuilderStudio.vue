@@ -1,18 +1,21 @@
-<!-- Parent Component -->
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
+import { clampValue } from '@/utils/commonUtils';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
   TWO_X: '2x',
 } as const;
 
+const MIN_VALUE = 1;
+const MAX_VALUE = 12;
+
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
-const columnCount = ref(10);
-const rowCount = ref(4);
+const columnCountRaw = ref(10);
+const rowCountRaw = ref(4);
 const isDeleteModeActive = ref(false);
 const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.ONE_X);
 
@@ -29,16 +32,30 @@ const handleSaveClick = () => {
 const handleClearGridClick = () => {
   buildGridRef.value?.clearBuildGrid();
 };
+
+watch(columnCountRaw, (newValue) => {
+  columnCountRaw.value = clampValue(newValue, MIN_VALUE, MAX_VALUE);
+});
+
+watch(rowCountRaw, (newValue) => {
+  rowCountRaw.value = clampValue(newValue, MIN_VALUE, MAX_VALUE);
+});
 </script>
 
 <template>
   <div class="build-block-studio">
     <div class="input-list">
       <div>
-        <label>Column count <input type="number" v-model="columnCount" min="1" max="12" /></label>
+        <label>
+          Column count
+          <input type="number" v-model.number="columnCountRaw" :min="MIN_VALUE" :max="MAX_VALUE" />
+        </label>
       </div>
       <div>
-        <label>Row count <input type="number" v-model="rowCount" min="1" max="12" /></label>
+        <label>
+          Row count
+          <input type="number" v-model.number="rowCountRaw" :min="MIN_VALUE" :max="MAX_VALUE" />
+        </label>
       </div>
     </div>
 
@@ -46,8 +63,8 @@ const handleClearGridClick = () => {
       <BuildGrid
         ref="buildGridRef"
         :activeBuildBlockType="activeBuildBlockType"
-        :columnCount="columnCount"
-        :rowCount="rowCount"
+        :columnCount="columnCountRaw"
+        :rowCount="rowCountRaw"
         :isDeleteModeActive="isDeleteModeActive"
       >
         <ul class="build-block-list">
