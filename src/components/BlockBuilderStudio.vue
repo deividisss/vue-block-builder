@@ -15,9 +15,9 @@ const MAX_VALUE = 12;
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const columnCountRaw = ref(10);
-const rowCountRaw = ref(4);
+const rowCountRaw = ref(3);
 const isDeleteModeActive = ref(false);
-const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.ONE_X);
+const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
 
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
 

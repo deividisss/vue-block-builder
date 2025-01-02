@@ -217,6 +217,7 @@ function buildCellContent(index: number): void {
         y: props.rowCount - cell.rowIndex - 1,
         z: 0,
       },
+      type: BUILD_BLOCK_TYPES.ONE_X,
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
@@ -250,6 +251,7 @@ function buildCellContent(index: number): void {
       y: props.rowCount - cell.rowIndex - 1,
       z: 0,
     },
+    type: BUILD_BLOCK_TYPES.TWO_X,
   };
 
   renderedBuildBlocks.value.push(newRenderedBuildGBLock);
