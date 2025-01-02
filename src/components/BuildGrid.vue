@@ -232,16 +232,16 @@ function buildCellContent(index: number): void {
   const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
   const cellRight = cells.value.find((cell) => cell.index === rightCellIndex)!;
 
-  if (!isCellRightActive(cell) && cellRight) {
-    cell.active = true;
-    cellRight.active = true;
-    cellRight.disabled = false;
-    cellRight.hasOutline = false;
-    cellRight.isEndCell = true;
-    cell.isStartCell = true;
-    cell.renderedBuildBLockId = newUniqueId;
-    cellRight.renderedBuildBLockId = newUniqueId;
-  }
+  if (isCellRightActive(cell) && cellRight) return;
+
+  cell.active = true;
+  cellRight.active = true;
+  cellRight.disabled = false;
+  cellRight.hasOutline = false;
+  cellRight.isEndCell = true;
+  cell.isStartCell = true;
+  cell.renderedBuildBLockId = newUniqueId;
+  cellRight.renderedBuildBLockId = newUniqueId;
 
   const newRenderedBuildGBLock: RenderedBuildBlock = {
     id: newUniqueId,

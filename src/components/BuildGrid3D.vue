@@ -8,7 +8,6 @@ const props = defineProps<{
   columnCount: number;
 }>();
 
-// Function to create edges for each geometry
 const createEdges = (geometry: THREE.BufferGeometry) => {
   const edgesGeometry = new THREE.EdgesGeometry(geometry);
   const edgesMaterial = new THREE.LineBasicMaterial({ color: '#434242' });
