@@ -4,6 +4,14 @@ import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
 
+const TRANSLATIONS = {
+  CLEAR_GRID: 'Do you really want to clear the entire grid?',
+  CHANGE_ROW_COUNT:
+    'Changing the row count will delete the current blocks in the grid. Do you want to proceed?',
+  CHANGE_COLUMN_COUNT:
+    'Changing the column count will delete the current blocks in the grid. Do you want to proceed?',
+};
+
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
   TWO_X: '2x',
@@ -15,9 +23,12 @@ const MAX_VALUE = 12;
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const columnCountRaw = ref(10);
+const tempColumnCountRaw = ref(columnCountRaw.value);
 const rowCountRaw = ref(3);
+const tempRowCountRaw = ref(rowCountRaw.value);
 const isDeleteModeActive = ref(false);
 const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
+const hasRenderedBuildBlocks = ref(false);
 
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
 
@@ -29,17 +40,49 @@ const handleSaveClick = () => {
   buildGridRef.value?.saveBuild();
 };
 
+const handleClearGridClickAlert = (msg: string) => {
+  buildGridRef.value?.clearBuildGridAlert(msg);
+};
+
 const handleClearGridClick = () => {
   buildGridRef.value?.clearBuildGrid();
 };
 
-watch(columnCountRaw, (newValue) => {
-  columnCountRaw.value = clampValue(newValue, MIN_VALUE, MAX_VALUE);
-});
+function setRenderedBlocksStatus(hasBlocks: boolean) {
+  hasRenderedBuildBlocks.value = hasBlocks;
+}
 
-watch(rowCountRaw, (newValue) => {
-  rowCountRaw.value = clampValue(newValue, MIN_VALUE, MAX_VALUE);
-});
+// TODO: Add alert for max min values
+
+const handleColumnCountChange = () => {
+  if (hasRenderedBuildBlocks.value) {
+    const userConfirmed = confirm(TRANSLATIONS.CHANGE_COLUMN_COUNT);
+
+    if (userConfirmed) {
+      handleClearGridClick();
+    } else {
+      tempColumnCountRaw.value = columnCountRaw.value;
+      console.log('Row count change canceled. Value not changed.');
+    }
+  }
+
+  tempColumnCountRaw.value = clampValue(tempColumnCountRaw.value, MIN_VALUE, MAX_VALUE);
+};
+
+const handleRowCountChange = () => {
+  if (hasRenderedBuildBlocks.value) {
+    const userConfirmed = confirm(TRANSLATIONS.CHANGE_ROW_COUNT);
+
+    if (userConfirmed) {
+      handleClearGridClick();
+    } else {
+      tempRowCountRaw.value = rowCountRaw.value;
+      console.log('Row count change canceled. Value not changed.');
+    }
+  }
+
+  tempRowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
+};
 </script>
 
 <template>
@@ -48,13 +91,25 @@ watch(rowCountRaw, (newValue) => {
       <div>
         <label>
           Column count
-          <input type="number" v-model.number="columnCountRaw" :min="MIN_VALUE" :max="MAX_VALUE" />
+          <input
+            type="number"
+            v-model.number="tempColumnCountRaw"
+            :min="MIN_VALUE"
+            :max="MAX_VALUE"
+            @change="handleColumnCountChange"
+          />
         </label>
       </div>
       <div>
         <label>
           Row count
-          <input type="number" v-model.number="rowCountRaw" :min="MIN_VALUE" :max="MAX_VALUE" />
+          <input
+            type="number"
+            v-model.number="tempRowCountRaw"
+            :min="MIN_VALUE"
+            :max="MAX_VALUE"
+            @change="handleRowCountChange"
+          />
         </label>
       </div>
     </div>
@@ -66,6 +121,7 @@ watch(rowCountRaw, (newValue) => {
         :columnCount="columnCountRaw"
         :rowCount="rowCountRaw"
         :isDeleteModeActive="isDeleteModeActive"
+        @hasRenderedBuildBlocks="setRenderedBlocksStatus"
       >
         <ul class="build-block-list">
           <li
@@ -106,7 +162,7 @@ watch(rowCountRaw, (newValue) => {
             v-if="!isDeleteModeActive"
             class="delete-button"
             :class="{ active: isDeleteModeActive, 'two-x': true }"
-            @click="handleClearGridClick"
+            @click="handleClearGridClickAlert(TRANSLATIONS.CLEAR_GRID)"
           >
             Clear Grid
           </li>

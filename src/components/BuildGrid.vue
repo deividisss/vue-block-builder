@@ -53,7 +53,7 @@ function saveBuild(): void {
   localStorage.setItem('cells', JSON.stringify(cells.value));
 }
 
-function clearBuildGrid(): void {
+function clearBuildGridAlert(): void {
   if (renderedBuildBlocks.value.length > 0) {
     const userConfirmed = confirm('Do you really want to clear the entire grid?');
 
@@ -66,8 +66,16 @@ function clearBuildGrid(): void {
   }
 }
 
+function clearBuildGrid(): void {
+  if (renderedBuildBlocks.value.length === 0) return;
+
+  renderedBuildBlocks.value = [];
+  initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+}
+
 defineExpose({
   saveBuild,
+  clearBuildGridAlert,
   clearBuildGrid,
 });
 
@@ -105,6 +113,20 @@ watch(
     }
 
     initializeCells(columnCount, rowCount);
+  },
+  { immediate: true }
+);
+
+const emit = defineEmits<{
+  (event: 'hasRenderedBuildBlocks', hasBlocks: boolean): void;
+}>();
+
+watch(
+  () => renderedBuildBlocks.value.length,
+  (newLength, oldLength) => {
+    if (newLength !== oldLength) {
+      emit('hasRenderedBuildBlocks', newLength > 0);
+    }
   },
   { immediate: true }
 );
