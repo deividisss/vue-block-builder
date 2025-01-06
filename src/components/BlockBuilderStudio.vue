@@ -4,14 +4,6 @@ import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
 
-const TRANSLATIONS = {
-  CLEAR_GRID: 'Do you really want to clear the entire grid?',
-  CHANGE_ROW_COUNT:
-    'Changing the row count will delete the current blocks in the grid. Do you want to proceed?',
-  CHANGE_COLUMN_COUNT:
-    'Changing the column count will delete the current blocks in the grid. Do you want to proceed?',
-};
-
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
   TWO_X: '2x',
@@ -19,6 +11,16 @@ const BUILD_BLOCK_TYPES = {
 
 const MIN_VALUE = 1;
 const MAX_VALUE = 12;
+
+const TRANSLATIONS = {
+  CLEAR_GRID: 'Do you really want to clear the entire grid?',
+  COLUMN_COUNT_EXCEEDS_MAX: `The column count cannot exceed ${MAX_VALUE}. Please enter a valid value.`,
+  COLUMN_COUNT_BELOW_MIN: `The column count cannot be less than ${MIN_VALUE}. Please enter a valid value.`,
+  ROW_COUNT_EXCEEDS_MAX: `The row count cannot exceed ${MAX_VALUE}. Please enter a valid value.`,
+  ROW_COUNT_BELOW_MIN: `The row count cannot be less than ${MIN_VALUE}. Please enter a valid value.`,
+  CHANGE_ROW_COUNT: `Changing the row count will delete the current blocks in the grid. Do you want to proceed?`,
+  CHANGE_COLUMN_COUNT: `Changing the column count will delete the current blocks in the grid. Do you want to proceed?`,
+};
 
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
@@ -52,40 +54,53 @@ function setRenderedBlocksStatus(hasBlocks: boolean) {
   hasRenderedBuildBlocks.value = hasBlocks;
 }
 
-// TODO: Add alert for max min values
-
-const handleColumnCountChange = () => {
-  if (hasRenderedBuildBlocks.value) {
-    const userConfirmed = confirm(TRANSLATIONS.CHANGE_COLUMN_COUNT);
-
-    if (userConfirmed) {
-      handleClearGridClick();
-    } else {
-      tempColumnCountRaw.value = columnCountRaw.value;
-      console.log('Row count change canceled. Value not changed.');
-    }
+const handleColumnCountChange = (): void => {
+  if (tempColumnCountRaw.value < MIN_VALUE) {
+    alert(TRANSLATIONS.COLUMN_COUNT_BELOW_MIN);
+    tempColumnCountRaw.value = MIN_VALUE;
+    return;
   }
 
-  tempColumnCountRaw.value = clampValue(tempColumnCountRaw.value, MIN_VALUE, MAX_VALUE);
+  if (tempColumnCountRaw.value > MAX_VALUE) {
+    alert(TRANSLATIONS.COLUMN_COUNT_EXCEEDS_MAX);
+    tempColumnCountRaw.value = MAX_VALUE;
+    return;
+  }
+
+  if (hasRenderedBuildBlocks.value && !confirm(TRANSLATIONS.CHANGE_COLUMN_COUNT)) {
+    tempColumnCountRaw.value = columnCountRaw.value;
+    return;
+  }
+
+  if (hasRenderedBuildBlocks.value) handleClearGridClick();
+
+  columnCountRaw.value = clampValue(tempColumnCountRaw.value, MIN_VALUE, MAX_VALUE);
 };
 
-const handleRowCountChange = () => {
-  if (hasRenderedBuildBlocks.value) {
-    const userConfirmed = confirm(TRANSLATIONS.CHANGE_ROW_COUNT);
-
-    if (userConfirmed) {
-      handleClearGridClick();
-    } else {
-      tempRowCountRaw.value = rowCountRaw.value;
-      console.log('Row count change canceled. Value not changed.');
-    }
+const handleRowCountChange = (): void => {
+  if (tempRowCountRaw.value < MIN_VALUE) {
+    alert(TRANSLATIONS.ROW_COUNT_BELOW_MIN);
+    return;
   }
 
-  tempRowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
+  if (tempRowCountRaw.value > MAX_VALUE) {
+    alert(TRANSLATIONS.ROW_COUNT_EXCEEDS_MAX);
+    return;
+  }
+
+  if (hasRenderedBuildBlocks.value && !confirm(TRANSLATIONS.CHANGE_ROW_COUNT)) {
+    tempRowCountRaw.value = rowCountRaw.value;
+    return;
+  }
+
+  if (hasRenderedBuildBlocks.value) handleClearGridClick();
+
+  rowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
 };
 </script>
 
 <template>
+  {{ columnCountRaw }} {{ tempColumnCountRaw }}
   <div class="build-block-studio">
     <div class="input-list">
       <div>
