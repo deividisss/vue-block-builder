@@ -6,6 +6,11 @@ import type { Cell } from '@/types/cell';
 import { v4 as uuidv4 } from 'uuid';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
 import BuildGrid3D from './BuildGrid3D.vue';
+import {
+  BUILD_BLOCK_TYPES,
+  type BuildBlockType,
+  type RenderedBuildBlock,
+} from '@/types/renderedBuildBlock';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -14,18 +19,6 @@ const props = defineProps<{
   activeBuildBlockType?: BuildBlockType;
   isDeleteModeActive: boolean;
 }>();
-
-const BUILD_BLOCK_TYPES = {
-  ONE_X: '1x',
-  TWO_X: '2x',
-} as const;
-
-type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
-
-interface RenderedBuildBlock {
-  id: string;
-  cellIndexes: number[];
-}
 
 onMounted(() => {
   const savedBlocks = localStorage.getItem('renderedBuildBlocks');
@@ -234,9 +227,9 @@ function buildCellContent(index: number): void {
     const newRenderedBuildGBLock: RenderedBuildBlock = {
       id: newUniqueId,
       cellIndexes: [cell.index],
-      cordinates: {
+      coordinates: {
         x: cell.columnIndex,
-        y: props.rowCount - cell.rowIndex - 1,
+        y: (props.rowCount ?? 1) - cell.rowIndex - 1,
         z: 0,
       },
       type: BUILD_BLOCK_TYPES.ONE_X,
@@ -268,9 +261,9 @@ function buildCellContent(index: number): void {
   const newRenderedBuildGBLock: RenderedBuildBlock = {
     id: newUniqueId,
     cellIndexes: [cell.index, cellRight.index],
-    cordinates: {
+    coordinates: {
       x: cell.columnIndex,
-      y: props.rowCount - cell.rowIndex - 1,
+      y: (props.rowCount ?? 1) - cell.rowIndex - 1,
       z: 0,
     },
     type: BUILD_BLOCK_TYPES.TWO_X,
@@ -278,7 +271,7 @@ function buildCellContent(index: number): void {
 
   renderedBuildBlocks.value.push(newRenderedBuildGBLock);
 }
-
+6;
 function getNextCell(cell: Cell): Cell | undefined {
   const columnCount = props.columnCount ?? 1;
   const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
@@ -350,7 +343,7 @@ const getCursorType = computed(() => {
     </div>
   </div>
   <slot></slot>
-  <BuildGrid3D :renderedBuildBlocks="renderedBuildBlocks" :columnCount="columnCount" />
+  <BuildGrid3D :renderedBuildBlocks="renderedBuildBlocks" :columnCount="columnCount ?? 1" />
 </template>
 
 <style scoped>

@@ -2,6 +2,7 @@
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
+import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 
 const props = defineProps<{
   renderedBuildBlocks?: RenderedBuildBlock[];
@@ -21,11 +22,11 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
       <TresPerspectiveCamera :position="[7, 7, 7]" />
       <OrbitControls />
 
-      <TresGroup :position="[-columnCount / 2 + 0.5, 0.5, 0.5]">
+      <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
         <TresGroup
-          v-for="block in renderedBuildBlocks"
+          v-for="block in props.renderedBuildBlocks"
           :key="block.id"
-          :position="[block.cordinates.x, block.cordinates.y, block.cordinates.z]"
+          :position="[block.coordinates.x, block.coordinates.y, block.coordinates.z]"
         >
           <TresMesh v-if="block.type === '1x'">
             <TresBoxGeometry :args="[1, 1, 1]" />
