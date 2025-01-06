@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
+import { CURSOR_TYPES } from '@/types/cursorConstants';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
   TWO_X: '2x',
 } as const;
 
+type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
+
 const MIN_VALUE = 1;
 const MAX_VALUE = 12;
 
 const TRANSLATIONS = {
   CLEAR_GRID: 'Do you really want to clear the entire grid?',
+  CLEAR_GRID_CANCELED: 'Grid clear operation canceled.',
   COLUMN_COUNT_EXCEEDS_MAX: `The column count cannot exceed ${MAX_VALUE}. Please enter a valid value.`,
   COLUMN_COUNT_BELOW_MIN: `The column count cannot be less than ${MIN_VALUE}. Please enter a valid value.`,
   ROW_COUNT_EXCEEDS_MAX: `The row count cannot exceed ${MAX_VALUE}. Please enter a valid value.`,
@@ -21,8 +25,6 @@ const TRANSLATIONS = {
   CHANGE_ROW_COUNT: `Changing the row count will delete the current blocks in the grid. Do you want to proceed?`,
   CHANGE_COLUMN_COUNT: `Changing the column count will delete the current blocks in the grid. Do you want to proceed?`,
 };
-
-type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const columnCountRaw = ref(10);
 const tempColumnCountRaw = ref(columnCountRaw.value);
@@ -38,15 +40,15 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
   activeBuildBlockType.value = type;
 };
 
-const handleSaveClick = () => {
+const handleSaveClick = (): void => {
   buildGridRef.value?.saveBuild();
 };
 
-const handleClearGridClickAlert = (msg: string) => {
-  buildGridRef.value?.clearBuildGridAlert(msg);
+const handleClearGridClickAlert = (clearGrid: string, clearGridCanceled: string): void => {
+  buildGridRef.value?.clearBuildGridAlert(clearGridCanceled, clearGrid);
 };
 
-const handleClearGridClick = () => {
+const handleClearGridClick = (): void => {
   buildGridRef.value?.clearBuildGrid();
 };
 
@@ -100,7 +102,6 @@ const handleRowCountChange = (): void => {
 </script>
 
 <template>
-  {{ columnCountRaw }} {{ tempColumnCountRaw }}
   <div class="build-block-studio">
     <div class="input-list">
       <div>
@@ -144,7 +145,7 @@ const handleRowCountChange = (): void => {
             :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.ONE_X }"
             @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.ONE_X)"
           >
-            <BuildBlock hasStud cursor-type="POINTER" />
+            <BuildBlock hasStud :cursor-type="CURSOR_TYPES.POINTER" />
           </li>
 
           <li
@@ -152,8 +153,8 @@ const handleRowCountChange = (): void => {
             :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.TWO_X, 'two-x': true }"
             @click="setActiveBuildBlockType(BUILD_BLOCK_TYPES.TWO_X)"
           >
-            <BuildBlock hasStud isStartPart cursor-type="POINTER" />
-            <BuildBlock hasStud isEndPart cursor-type="POINTER" />
+            <BuildBlock hasStud isStartPart :cursor-type="CURSOR_TYPES.POINTER" />
+            <BuildBlock hasStud isEndPart :cursor-type="CURSOR_TYPES.POINTER" />
           </li>
 
           <li
@@ -177,7 +178,9 @@ const handleRowCountChange = (): void => {
             v-if="!isDeleteModeActive"
             class="delete-button"
             :class="{ active: isDeleteModeActive, 'two-x': true }"
-            @click="handleClearGridClickAlert(TRANSLATIONS.CLEAR_GRID)"
+            @click="
+              handleClearGridClickAlert(TRANSLATIONS.CLEAR_GRID, TRANSLATIONS.CLEAR_GRID_CANCELED)
+            "
           >
             Clear Grid
           </li>

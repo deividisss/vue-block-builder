@@ -53,15 +53,15 @@ function saveBuild(): void {
   localStorage.setItem('cells', JSON.stringify(cells.value));
 }
 
-function clearBuildGridAlert(): void {
+function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
   if (renderedBuildBlocks.value.length > 0) {
-    const userConfirmed = confirm('Do you really want to clear the entire grid?');
+    const userConfirmed = confirm(msgClearGrid);
 
     if (userConfirmed) {
       renderedBuildBlocks.value = [];
       initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
     } else {
-      console.log('Grid clear operation canceled.');
+      console.log(msgCanceled);
     }
   }
 }
