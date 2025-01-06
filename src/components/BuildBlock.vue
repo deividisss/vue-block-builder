@@ -18,6 +18,7 @@ const props = withDefaults(
   }
 );
 </script>
+
 <template>
   <div
     class="build-block"
