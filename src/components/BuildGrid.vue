@@ -21,19 +21,22 @@ const props = defineProps<{
 }>();
 
 onMounted(() => {
-  const savedBlocks = localStorage.getItem('renderedBuildBlocks');
-  const savedCells = localStorage.getItem('cells');
+  const storeddBlocks = localStorage.getItem('renderedBuildBlocks');
+  const storedCells = localStorage.getItem('cells');
 
-  if (savedBlocks && savedCells) {
+  if (storeddBlocks && storedCells) {
     try {
-      renderedBuildBlocks.value = JSON.parse(savedBlocks) as RenderedBuildBlock[];
+      renderedBuildBlocks.value = JSON.parse(storeddBlocks) as RenderedBuildBlock[];
+      console.log('alio');
+      console.table(renderedBuildBlocks.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       renderedBuildBlocks.value = [];
     }
 
     try {
-      cells.value = JSON.parse(savedCells) as Cell[];
+      cells.value = JSON.parse(storedCells) as Cell[];
+      console.table(cells.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       cells.value = [];
@@ -42,6 +45,10 @@ onMounted(() => {
 });
 
 function saveBuild(): void {
+  localStorage.setItem(
+    'builgridSize',
+    JSON.stringify({ columnCount: props.columnCount, rowCount: props.rowCount })
+  );
   localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
   localStorage.setItem('cells', JSON.stringify(cells.value));
 }
@@ -52,7 +59,7 @@ function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
 
     if (userConfirmed) {
       renderedBuildBlocks.value = [];
-      initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+      setupGridCells(props.columnCount ?? 0, props.rowCount ?? 0);
     } else {
       console.log(msgCanceled);
     }
@@ -60,10 +67,11 @@ function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
 }
 
 function clearBuildGrid(): void {
+  console.log('clear grid');
   if (renderedBuildBlocks.value.length === 0) return;
 
   renderedBuildBlocks.value = [];
-  initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+  setupGridCells(props.columnCount ?? 0, props.rowCount ?? 0);
 }
 
 defineExpose({
@@ -77,8 +85,9 @@ const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 const hoverColor: Ref<string> = ref('red');
 
-function initializeCells(columnCount: number, rowCount: number) {
+function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];
+  console.log('seting up grid');
 
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < columnCount; col++) {
@@ -105,7 +114,7 @@ watch(
       return;
     }
 
-    initializeCells(columnCount, rowCount);
+    setupGridCells(columnCount, rowCount);
   },
   { immediate: true }
 );

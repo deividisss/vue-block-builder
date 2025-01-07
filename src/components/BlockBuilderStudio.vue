@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeMount, onMounted, ref } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
@@ -35,6 +35,36 @@ const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
 const hasRenderedBuildBlocks = ref(false);
 
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
+
+onBeforeMount(() => {
+  const storedbuilgridSize = localStorage.getItem('builgridSize');
+
+  if (storedbuilgridSize) {
+    try {
+      const parsedStoredbuilgridSize = JSON.parse(storedbuilgridSize) as {
+        columnCount: number;
+        rowCount: number;
+      };
+
+      columnCountRaw.value = parsedStoredbuilgridSize.columnCount;
+      tempColumnCountRaw.value = parsedStoredbuilgridSize.columnCount;
+      console.log(columnCountRaw.value);
+    } catch (error) {
+      console.error('Failed to parse stored storedbuilgridSize:', error);
+    }
+
+    try {
+      const parsedStoredbuilgridSize = JSON.parse(storedbuilgridSize) as {
+        columnCount: number;
+        rowCount: number;
+      };
+      rowCountRaw.value = parsedStoredbuilgridSize.rowCount;
+      tempRowCountRaw.value = parsedStoredbuilgridSize.rowCount;
+    } catch (error) {
+      console.error('Failed to parse stored storedbuilgridSize:', error);
+    }
+  }
+});
 
 const setActiveBuildBlockType = (type: BuildBlockType) => {
   activeBuildBlockType.value = type;
@@ -82,11 +112,13 @@ const handleColumnCountChange = (): void => {
 const handleRowCountChange = (): void => {
   if (tempRowCountRaw.value < MIN_VALUE) {
     alert(TRANSLATIONS.ROW_COUNT_BELOW_MIN);
+    tempRowCountRaw.value = MIN_VALUE;
     return;
   }
 
   if (tempRowCountRaw.value > MAX_VALUE) {
     alert(TRANSLATIONS.ROW_COUNT_EXCEEDS_MAX);
+    tempRowCountRaw.value = MAX_VALUE;
     return;
   }
 
