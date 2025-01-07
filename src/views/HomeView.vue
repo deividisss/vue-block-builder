@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import BlockBuilderStudio from '@/components/BlockBuilderStudio.vue';
-import BuildBlock from '@/components/BuildBlock.vue';
 </script>
 
 <template>

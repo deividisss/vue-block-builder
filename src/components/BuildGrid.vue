@@ -5,6 +5,12 @@ import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gri
 import type { Cell } from '@/types/cell';
 import { v4 as uuidv4 } from 'uuid';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
+import BuildGrid3D from './BuildGrid3D.vue';
+import {
+  BUILD_BLOCK_TYPES,
+  type BuildBlockType,
+  type RenderedBuildBlock,
+} from '@/types/renderedBuildBlock';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -14,32 +20,23 @@ const props = defineProps<{
   isDeleteModeActive: boolean;
 }>();
 
-const BUILD_BLOCK_TYPES = {
-  ONE_X: '1x',
-  TWO_X: '2x',
-} as const;
-
-type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
-
-interface RenderedBuildBlock {
-  id: string;
-  cellIndexes: number[];
-}
-
 onMounted(() => {
-  const savedBlocks = localStorage.getItem('renderedBuildBlocks');
-  const savedCells = localStorage.getItem('cells');
+  const storeddBlocks = localStorage.getItem('renderedBuildBlocks');
+  const storedCells = localStorage.getItem('cells');
 
-  if (savedBlocks && savedCells) {
+  if (storeddBlocks && storedCells) {
     try {
-      renderedBuildBlocks.value = JSON.parse(savedBlocks) as RenderedBuildBlock[];
+      renderedBuildBlocks.value = JSON.parse(storeddBlocks) as RenderedBuildBlock[];
+      console.log('alio');
+      console.table(renderedBuildBlocks.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       renderedBuildBlocks.value = [];
     }
 
     try {
-      cells.value = JSON.parse(savedCells) as Cell[];
+      cells.value = JSON.parse(storedCells) as Cell[];
+      console.table(cells.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       cells.value = [];
@@ -48,25 +45,38 @@ onMounted(() => {
 });
 
 function saveBuild(): void {
+  localStorage.setItem(
+    'builgridSize',
+    JSON.stringify({ columnCount: props.columnCount, rowCount: props.rowCount })
+  );
   localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
   localStorage.setItem('cells', JSON.stringify(cells.value));
 }
 
-function clearBuildGrid(): void {
+function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
   if (renderedBuildBlocks.value.length > 0) {
-    const userConfirmed = confirm('Do you really want to clear the entire grid?');
+    const userConfirmed = confirm(msgClearGrid);
 
     if (userConfirmed) {
       renderedBuildBlocks.value = [];
-      initializeCells(props.columnCount ?? 0, props.rowCount ?? 0);
+      setupGridCells(props.columnCount ?? 0, props.rowCount ?? 0);
     } else {
-      console.log('Grid clear operation canceled.');
+      console.log(msgCanceled);
     }
   }
 }
 
+function clearBuildGrid(): void {
+  console.log('clear grid');
+  if (renderedBuildBlocks.value.length === 0) return;
+
+  renderedBuildBlocks.value = [];
+  setupGridCells(props.columnCount ?? 0, props.rowCount ?? 0);
+}
+
 defineExpose({
   saveBuild,
+  clearBuildGridAlert,
   clearBuildGrid,
 });
 
@@ -75,8 +85,9 @@ const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 const hoverColor: Ref<string> = ref('red');
 
-function initializeCells(columnCount: number, rowCount: number) {
+function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];
+  console.log('seting up grid');
 
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < columnCount; col++) {
@@ -103,7 +114,21 @@ watch(
       return;
     }
 
-    initializeCells(columnCount, rowCount);
+    setupGridCells(columnCount, rowCount);
+  },
+  { immediate: true }
+);
+
+const emit = defineEmits<{
+  (event: 'hasRenderedBuildBlocks', hasBlocks: boolean): void;
+}>();
+
+watch(
+  () => renderedBuildBlocks.value.length,
+  (newLength, oldLength) => {
+    if (newLength !== oldLength) {
+      emit('hasRenderedBuildBlocks', newLength > 0);
+    }
   },
   { immediate: true }
 );
@@ -211,6 +236,12 @@ function buildCellContent(index: number): void {
     const newRenderedBuildGBLock: RenderedBuildBlock = {
       id: newUniqueId,
       cellIndexes: [cell.index],
+      coordinates: {
+        x: cell.columnIndex,
+        y: (props.rowCount ?? 1) - cell.rowIndex - 1,
+        z: 0,
+      },
+      type: BUILD_BLOCK_TYPES.ONE_X,
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
@@ -225,25 +256,31 @@ function buildCellContent(index: number): void {
   const rightCellIndex = getCellRightIndex(cell.rowIndex, cell.columnIndex, columnCount);
   const cellRight = cells.value.find((cell) => cell.index === rightCellIndex)!;
 
-  if (!isCellRightActive(cell) && cellRight) {
-    cell.active = true;
-    cellRight.active = true;
-    cellRight.disabled = false;
-    cellRight.hasOutline = false;
-    cellRight.isEndCell = true;
-    cell.isStartCell = true;
-    cell.renderedBuildBLockId = newUniqueId;
-    cellRight.renderedBuildBLockId = newUniqueId;
-  }
+  if (isCellRightActive(cell) && cellRight) return;
+
+  cell.active = true;
+  cellRight.active = true;
+  cellRight.disabled = false;
+  cellRight.hasOutline = false;
+  cellRight.isEndCell = true;
+  cell.isStartCell = true;
+  cell.renderedBuildBLockId = newUniqueId;
+  cellRight.renderedBuildBLockId = newUniqueId;
 
   const newRenderedBuildGBLock: RenderedBuildBlock = {
     id: newUniqueId,
     cellIndexes: [cell.index, cellRight.index],
+    coordinates: {
+      x: cell.columnIndex,
+      y: (props.rowCount ?? 1) - cell.rowIndex - 1,
+      z: 0,
+    },
+    type: BUILD_BLOCK_TYPES.TWO_X,
   };
 
   renderedBuildBlocks.value.push(newRenderedBuildGBLock);
 }
-
+6;
 function getNextCell(cell: Cell): Cell | undefined {
   const columnCount = props.columnCount ?? 1;
   const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
@@ -314,6 +351,8 @@ const getCursorType = computed(() => {
       </div>
     </div>
   </div>
+  <slot></slot>
+  <BuildGrid3D :renderedBuildBlocks="renderedBuildBlocks" :columnCount="columnCount ?? 1" />
 </template>
 
 <style scoped>
