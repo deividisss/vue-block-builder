@@ -27,7 +27,6 @@ onMounted(() => {
   if (storeddBlocks && storedCells) {
     try {
       renderedBuildBlocks.value = JSON.parse(storeddBlocks) as RenderedBuildBlock[];
-      console.log('alio');
       console.table(renderedBuildBlocks.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
@@ -67,7 +66,6 @@ function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
 }
 
 function clearBuildGrid(): void {
-  console.log('clear grid');
   if (renderedBuildBlocks.value.length === 0) return;
 
   renderedBuildBlocks.value = [];
@@ -83,11 +81,10 @@ defineExpose({
 const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
-const hoverColor: Ref<string> = ref('red');
+const hoverColor: Ref<string> = ref('red');1
 
 function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];
-  console.log('seting up grid');
 
   for (let row = 0; row < rowCount; row++) {
     for (let col = 0; col < columnCount; col++) {
@@ -199,15 +196,12 @@ function setNextCellHoverOutline(nextCell: Cell, cell: Cell, isHovered: boolean)
 function removeBuildBlock(index: number) {
   const cell = cells.value.find((cell) => cell.index === index);
   const renderedBuildBLockId = cell?.renderedBuildBLockId;
-  console.log('renderedBuildBLockId', renderedBuildBLockId);
 
   const renderedBuildBlock: RenderedBuildBlock | undefined = renderedBuildBlocks.value.find(
     (renderedBuildBlock) => renderedBuildBlock.id === renderedBuildBLockId
   );
 
-  console.log('renderedBuildBlock', renderedBuildBlock);
   if (!renderedBuildBlock) return;
-  console.log('renderedBuildBlock', renderedBuildBlock);
 
   renderedBuildBlock.cellIndexes.forEach((cellIndex) => {
     cells.value[cellIndex].active = false;
@@ -224,7 +218,6 @@ function removeBuildBlock(index: number) {
 }
 
 function buildCellContent(index: number): void {
-  console.log('cell was clicked');
   const cell = cells.value.find((cell) => cell.index === index);
   if (!cell || cell.active) return;
   const newUniqueId = uuidv4();
@@ -245,7 +238,6 @@ function buildCellContent(index: number): void {
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
-    console.log('testas');
     return;
   }
 
