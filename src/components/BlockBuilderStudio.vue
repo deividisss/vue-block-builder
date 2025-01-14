@@ -48,7 +48,6 @@ onBeforeMount(() => {
 
       columnCountRaw.value = parsedStoredbuilgridSize.columnCount;
       tempColumnCountRaw.value = parsedStoredbuilgridSize.columnCount;
-      console.log(columnCountRaw.value);
     } catch (error) {
       console.error('Failed to parse stored storedbuilgridSize:', error);
     }

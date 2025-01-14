@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import BlockBuilderStudio from '@/components/BlockBuilderStudio.vue';
-
-console.log(import.meta.env.VITE_SOME_KEY); // "123"
-console.log(import.meta.env.DB_PASSWORD); // "123"
 </script>
 
 <template>

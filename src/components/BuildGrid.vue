@@ -27,7 +27,6 @@ onMounted(() => {
   if (storeddBlocks && storedCells) {
     try {
       renderedBuildBlocks.value = JSON.parse(storeddBlocks) as RenderedBuildBlock[];
-      console.table(renderedBuildBlocks.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       renderedBuildBlocks.value = [];
@@ -35,7 +34,6 @@ onMounted(() => {
 
     try {
       cells.value = JSON.parse(storedCells) as Cell[];
-      console.table(cells.value);
     } catch (error) {
       console.error('Failed to parse saved blocks:', error);
       cells.value = [];
@@ -81,7 +79,7 @@ defineExpose({
 const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
-const hoverColor: Ref<string> = ref('red');1
+const hoverColor: Ref<string> = ref('red');
 
 function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];

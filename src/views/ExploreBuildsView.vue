@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BuildGrid3D from '@/components/BuildGrid3D.vue';
+// import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { ref, onMounted } from 'vue';
@@ -20,12 +20,26 @@ const isLoading = ref<boolean>(false);
 const fetchPosts = async () => {
   isLoading.value = true;
   try {
-    const response = await fetch('http://localhost:3000/block-builder-builds');
+    const response = await fetch(
+      'https://ho65ikdkg5.execute-api.eu-central-1.amazonaws.com/Dev/customers'
+    );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data: BlockBuilderBuild[] = await response.json();
-    blockBuilderBuilds.value = data;
+    const result = await response.json();
+
+    const parsedBody = JSON.parse(result.body);
+    const customers = parsedBody.data || [];
+
+    const normalizedCustomers = customers.map((customer: any) => ({
+      customer_id: customer.customer_id?.S || '',
+      first_name: customer.first_name?.S || '',
+      last_name: customer.last_name?.S || '',
+      city: customer.City?.S || null,
+    }));
+
+    blockBuilderBuilds.value = normalizedCustomers;
+    console.log('First customer ID:', normalizedCustomers[0]);
   } catch (err) {
     error.value = (err as Error).message;
   } finally {
@@ -39,12 +53,14 @@ onMounted(() => {
 </script>
 
 <template>
+  <p>{{ blockBuilderBuilds }}</p>
+
   <div class="explore-builds-page">
     <h1>This is an explore builds page</h1>
     <div v-if="isLoading" class="loader">Loading...</div>
     <div v-if="error" class="error">Error: {{ error }}</div>
 
-    <div v-if="!isLoading && !error" class="builds-container">
+    <!-- <div v-if="!isLoading && !error" class="builds-container">
       <div v-for="(build, index) in blockBuilderBuilds" :key="index" class="build-item">
         <h2>Grid Size: {{ build.builgridSize.columnCount }}x{{ build.builgridSize.rowCount }}</h2>
         <BuildGrid3D
@@ -54,11 +70,11 @@ onMounted(() => {
           heightSize="small"
         />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
-<style>
+<style scoped>
 .explore-builds-page {
   display: flex;
   flex-direction: column;
@@ -88,6 +104,7 @@ onMounted(() => {
   font-weight: bold;
   color: #007bff;
 }
+
 h2 {
   padding-bottom: 10px;
 }
