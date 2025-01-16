@@ -20,6 +20,9 @@ const props = defineProps<{
   isDeleteModeActive: boolean;
 }>();
 
+// const API_URL = 'http://localhost:3000/block-builder-builds';
+const API_URL = 'https://jywqfnzo48.execute-api.eu-central-1.amazonaws.com/dev/build-blocks';
+
 onMounted(() => {
   const storeddBlocks = localStorage.getItem('renderedBuildBlocks');
   const storedCells = localStorage.getItem('cells');
@@ -40,6 +43,36 @@ onMounted(() => {
     }
   }
 });
+
+async function publishBuildToFakeServer(): Promise<void> {
+  const savedBuildData = {
+    buildGridSize: {
+      columnCount: props.columnCount,
+      rowCount: props.rowCount,
+    },
+    renderedBuildBlocks: renderedBuildBlocks.value,
+    cells: cells.value,
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(savedBuildData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to publish build');
+    }
+
+    const data = await response.json();
+    console.log('Server response:', data);
+  } catch (error) {
+    console.error('Failed to publish build:', error);
+  }
+}
 
 function saveBuild(): void {
   localStorage.setItem(
@@ -74,6 +107,7 @@ defineExpose({
   saveBuild,
   clearBuildGridAlert,
   clearBuildGrid,
+  publishBuildToFakeServer,
 });
 
 const cells = ref<Cell[]>([]);
