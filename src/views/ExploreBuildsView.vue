@@ -17,28 +17,6 @@ const blockBuilderBuilds = ref<BlockBuilderBuild[]>([]);
 const error = ref<string | null>(null);
 const isLoading = ref<boolean>(false);
 
-const normalizeBlockBuilderBuilds = (data: any): BlockBuilderBuild[] => {
-  return data.map((build: any) => ({
-    buildGridSize: {
-      columnCount: build.buildGridSize?.M?.columnCount?.N || 1,
-      rowCount: build.buildGridSize?.M?.rowCount?.N || 1,
-    },
-    renderedBuildBlocks:
-      build.renderedBuildBlocks?.L?.map((block: any) => ({
-        id: block.M?.id?.S || '',
-        coordinates: {
-          x: block.M?.coordinates?.M?.x?.N || 0,
-          y: block.M?.coordinates?.M?.y?.N || 0,
-          z: block.M?.coordinates?.M?.z?.N || 0,
-        },
-        cellIndexes: block.M?.cellIndexes?.L?.map((index: any) => index?.N || 0) || [],
-        type: block.M?.type?.S || '',
-      })) || [],
-    buildId: build.buildId?.S || '',
-    timestamp: build.timestamp?.S || '',
-  }));
-};
-
 const fetchAWSData = async () => {
   isLoading.value = true;
   try {
@@ -50,9 +28,11 @@ const fetchAWSData = async () => {
     }
     const result = await response.json();
     const parsedBody = JSON.parse(result.body);
-    const builds = parsedBody.data || [];
+    const builds = parsedBody.data.blockBuilderBuilds || [];
 
-    blockBuilderBuilds.value = normalizeBlockBuilderBuilds(builds);
+    const firstThreeItems = builds.slice(0, 3);
+
+    blockBuilderBuilds.value = builds;
   } catch (err) {
     error.value = (err as Error).message;
   } finally {
