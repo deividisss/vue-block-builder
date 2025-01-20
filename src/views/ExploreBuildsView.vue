@@ -20,7 +20,7 @@ const isLoading = ref<boolean>(false);
 const isLoadMoreDisabled = ref<boolean>(false);
 const ExclusiveStartKey = ref<string | null>(null);
 const hasMore = ref<boolean>(true);
-const limit = 3;
+const limit = 6;
 
 const fetchAWSData = async () => {
   if (isLoading.value || !hasMore.value) return;
@@ -57,6 +57,7 @@ const loadMoreBuilds = () => {
   fetchAWSData();
 };
 
+
 onMounted(() => {
   fetchAWSData();
 });
@@ -68,7 +69,7 @@ onMounted(() => {
     <div v-if="isLoading && blockBuilderBuilds.length === 0" class="loader">Loading...</div>
     <div v-if="error" class="error">Error: {{ error }}</div>
 
-    <div v-if="!isLoading && !error" class="builds-container">
+    <div v-if="!error" class="builds-container">
       <div
         v-for="(build, index) in blockBuilderBuilds"
         :key="build.buildId + index"
