@@ -7,6 +7,8 @@ import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 const props = defineProps<{
   renderedBuildBlocks?: RenderedBuildBlock[];
   columnCount: number;
+  hasControlsDisabled?: boolean;
+  heightSize?: 'small' | 'medium' | 'large'; // Prop to handle height size
 }>();
 
 const createEdges = (geometry: THREE.BufferGeometry) => {
@@ -17,10 +19,10 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 </script>
 
 <template>
-  <div class="build-grid-3d">
+  <div :class="['build-grid-3d', props.heightSize || 'medium']">
     <TresCanvas clear-color="#e1bee7" preset="realistic" enableProvideBridge>
       <TresPerspectiveCamera :position="[7, 7, 7]" />
-      <OrbitControls />
+      <OrbitControls :enabled="!props.hasControlsDisabled" />
 
       <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
         <TresGroup
@@ -58,7 +60,18 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 .build-grid-3d {
   margin: 0;
   padding: 0;
+}
+
+.build-grid-3d.small {
+  height: 400px;
+}
+
+.build-grid-3d.medium {
   height: 600px;
+}
+
+.build-grid-3d.large {
+  height: 1000px;
 }
 
 canvas {

@@ -48,7 +48,6 @@ onBeforeMount(() => {
 
       columnCountRaw.value = parsedStoredbuilgridSize.columnCount;
       tempColumnCountRaw.value = parsedStoredbuilgridSize.columnCount;
-      console.log(columnCountRaw.value);
     } catch (error) {
       console.error('Failed to parse stored storedbuilgridSize:', error);
     }
@@ -72,6 +71,10 @@ const setActiveBuildBlockType = (type: BuildBlockType) => {
 
 const handleSaveClick = (): void => {
   buildGridRef.value?.saveBuild();
+};
+
+const handlePublishBuildToFakeServer = (): void => {
+  buildGridRef.value?.publishBuildToFakeServer();
 };
 
 const handleClearGridClickAlert = (clearGrid: string, clearGridCanceled: string): void => {
@@ -201,6 +204,17 @@ const handleRowCountChange = (): void => {
             v-if="!isDeleteModeActive"
             class="delete-button"
             :class="{ active: isDeleteModeActive, 'two-x': true }"
+            @click="
+              handleClearGridClickAlert(TRANSLATIONS.CLEAR_GRID, TRANSLATIONS.CLEAR_GRID_CANCELED)
+            "
+          >
+            Clear Grid
+          </li>
+
+          <li
+            v-if="!isDeleteModeActive"
+            class="delete-button"
+            :class="{ active: isDeleteModeActive, 'two-x': true }"
             @click="handleSaveClick"
           >
             SAVE
@@ -210,11 +224,9 @@ const handleRowCountChange = (): void => {
             v-if="!isDeleteModeActive"
             class="delete-button"
             :class="{ active: isDeleteModeActive, 'two-x': true }"
-            @click="
-              handleClearGridClickAlert(TRANSLATIONS.CLEAR_GRID, TRANSLATIONS.CLEAR_GRID_CANCELED)
-            "
+            @click="handlePublishBuildToFakeServer"
           >
-            Clear Grid
+            PUBLISH
           </li>
         </ul>
         <br />
