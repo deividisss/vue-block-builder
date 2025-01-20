@@ -4,6 +4,13 @@ import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { ref, onMounted } from 'vue';
 
+// TODO: Render 3D instance only on clcik
+// TODO: Hide Grid
+// TODO: Enable navigation on hover with delay
+// TODO: Implement 3D render imige generation using Lamda and S3
+// TODO: Implemnt skeleton loading
+// TODO: Implemnt tests
+
 interface BlockBuilderBuild {
   buildGridSize: {
     columnCount: number;
@@ -57,7 +64,6 @@ const loadMoreBuilds = () => {
   fetchAWSData();
 };
 
-
 onMounted(() => {
   fetchAWSData();
 });
@@ -95,7 +101,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <br />
     <button v-if="!isLoading && hasMore" @click="loadMoreBuilds">Load more builds</button>
   </div>
 </template>
