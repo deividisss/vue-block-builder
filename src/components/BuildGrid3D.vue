@@ -4,12 +4,24 @@ import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 
-const props = defineProps<{
-  renderedBuildBlocks?: RenderedBuildBlock[];
-  columnCount: number;
-  hasControlsDisabled?: boolean;
-  heightSize?: 'small' | 'medium' | 'large'; // Prop to handle height size
-}>();
+const props = withDefaults(
+  defineProps<{
+    renderedBuildBlocks?: RenderedBuildBlock[];
+    columnCount: number;
+    hasControlsDisabled?: boolean;
+    hasGridHelperDisabled?: boolean;
+    hasAxesHelperDisabled?: boolean;
+    heightSize?: 'small' | 'medium' | 'large';
+    isCanvasVisible?: boolean;
+    isLoading?: boolean;
+    isZoomEnabled?: boolean;
+  }>(),
+  {
+    isCanvasVisible: true,
+    isLoading: false,
+    isZoomEnabled: true,
+  }
+);
 
 const createEdges = (geometry: THREE.BufferGeometry) => {
   const edgesGeometry = new THREE.EdgesGeometry(geometry);
@@ -19,40 +31,56 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 </script>
 
 <template>
-  <div :class="['build-grid-3d', props.heightSize || 'medium']">
-    <TresCanvas clear-color="#e1bee7" preset="realistic" enableProvideBridge>
-      <TresPerspectiveCamera :position="[7, 7, 7]" />
-      <OrbitControls :enabled="!props.hasControlsDisabled" />
+  <div>
+    <div :class="['build-grid-3d', props.heightSize || 'medium']">
+      <div v-if="isLoading" class="loader">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+      </div>
 
-      <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
-        <TresGroup
-          v-for="block in props.renderedBuildBlocks"
-          :key="block.id"
-          :position="[block.coordinates.x, block.coordinates.y, block.coordinates.z]"
-        >
-          <TresMesh v-if="block.type === '1x'">
-            <TresBoxGeometry :args="[1, 1, 1]" />
-            <TresMeshMatcapMaterial color="#a1d6b2" />
-            <primitive :object="createEdges(new THREE.BoxGeometry(1, 1, 1))" />
-          </TresMesh>
+      <TresCanvas
+        v-if="isCanvasVisible && !isLoading"
+        clear-color="#e1bee7"
+        preset="realistic"
+        enableProvideBridge
+      >
+        <TresPerspectiveCamera :position="[7, 7, 7]" />
+        <OrbitControls :enabled="!props.hasControlsDisabled" :enableZoom="props.isZoomEnabled" />
 
-          <TresGroup v-if="block.type === '2x'">
-            <primitive
-              :object="createEdges(new THREE.BoxGeometry(2, 1, 1))"
-              :position="[0.5, 0, 0]"
-            />
-            <TresMesh :position="[0.5, 0, 0]">
-              <TresBoxGeometry :args="[2, 1, 1]" />
+        <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
+          <TresGroup
+            v-for="block in props.renderedBuildBlocks"
+            :key="block.id"
+            :position="[block.coordinates.x, block.coordinates.y, block.coordinates.z]"
+          >
+            <TresMesh v-if="block.type === '1x'">
+              <TresBoxGeometry :args="[1, 1, 1]" />
               <TresMeshMatcapMaterial color="#a1d6b2" />
+              <primitive :object="createEdges(new THREE.BoxGeometry(1, 1, 1))" />
             </TresMesh>
+
+            <TresGroup v-if="block.type === '2x'">
+              <primitive
+                :object="createEdges(new THREE.BoxGeometry(2, 1, 1))"
+                :position="[0.5, 0, 0]"
+              />
+              <TresMesh :position="[0.5, 0, 0]">
+                <TresBoxGeometry :args="[2, 1, 1]" />
+                <TresMeshMatcapMaterial color="#a1d6b2" />
+              </TresMesh>
+            </TresGroup>
           </TresGroup>
         </TresGroup>
-      </TresGroup>
 
-      <TresDirectionalLight :position="[0, 2, 8]" :intensity="1.2" cast-shadow />
-      <TresGridHelper />
-      <TresAxesHelper />
-    </TresCanvas>
+        <TresDirectionalLight :position="[0, 2, 8]" :intensity="1.2" cast-shadow />
+        <TresGridHelper v-if="!props.hasGridHelperDisabled" />
+        <TresAxesHelper v-if="!props.hasAxesHelperDisabled" />
+      </TresCanvas>
+
+      <div v-else-if="!isLoading" class="placeholder">
+        <p>3D Preview is currently disabled. Hover to reveal it.</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -60,6 +88,7 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 .build-grid-3d {
   margin: 0;
   padding: 0;
+  position: relative;
 }
 
 .build-grid-3d.small {
@@ -72,6 +101,43 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 
 .build-grid-3d.large {
   height: 1000px;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 18px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #76c7c0;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: #666;
 }
 
 canvas {

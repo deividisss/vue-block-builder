@@ -4,13 +4,6 @@ import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { ref, onMounted } from 'vue';
 
-// TODO: Render 3D instance only on clcik
-// TODO: Hide Grid
-// TODO: Enable navigation on hover with delay
-// TODO: Implement 3D render imige generation using Lamda and S3
-// TODO: Implemnt skeleton loading
-// TODO: Implemnt tests
-
 interface BlockBuilderBuild {
   buildGridSize: {
     columnCount: number;
@@ -21,13 +14,24 @@ interface BlockBuilderBuild {
   buildId: string;
 }
 
+// TODO: Render 3D instance only on clcik
+// TODO: Hide Grid
+// TODO: Enable navigation on hover with delay
+// TODO: Implement 3D render imige generation using Lamda and S3
+// TODO: Implemnt skeleton loading
+// TODO: Implemnt tests
+// TODO: Disable 3D rendering when user scrolls
+
 const blockBuilderBuilds = ref<BlockBuilderBuild[]>([]);
 const error = ref<string | null>(null);
 const isLoading = ref<boolean>(false);
 const isLoadMoreDisabled = ref<boolean>(false);
 const ExclusiveStartKey = ref<string | null>(null);
 const hasMore = ref<boolean>(true);
-const limit = 6;
+const limit = 9;
+const isCanvasVisible = ref<boolean[]>([]); // Controls visibility of canvas
+const isCanvasLoading = ref<boolean[]>([]); // Controls loading spinner
+const hoverTimeout = ref<NodeJS.Timeout | null>(null); // Track the timeout for hover
 
 const fetchAWSData = async () => {
   if (isLoading.value || !hasMore.value) return;
@@ -50,6 +54,11 @@ const fetchAWSData = async () => {
     hasMore.value = result.hasMore;
     blockBuilderBuilds.value = [...blockBuilderBuilds.value, ...builds];
 
+    builds.forEach(() => {
+      isCanvasVisible.value.push(false);
+      isCanvasLoading.value.push(false);
+    });
+
     if (!hasMore.value) {
       isLoadMoreDisabled.value = true;
     }
@@ -62,6 +71,40 @@ const fetchAWSData = async () => {
 
 const loadMoreBuilds = () => {
   fetchAWSData();
+};
+
+const isHovered = ref<boolean[]>([]);
+const isCanvasInitialized = ref<boolean[]>([]); // Track if canvas has been initialized for the first time
+
+const toggleCanvasVisibilityOnHover = (index: number, isHovering: boolean) => {
+  // Prevent repeated hover triggers within the same hover session
+  if (isHovered.value[index] === isHovering) {
+    return;
+  }
+
+  isHovered.value[index] = isHovering;
+
+  if (isHovering) {
+    // Reset and show the loading spinner
+    isCanvasLoading.value[index] = true;
+
+    if (hoverTimeout.value !== null) clearTimeout(hoverTimeout.value);
+    hoverTimeout.value = setTimeout(() => {
+      if (!isCanvasInitialized.value[index]) {
+        isCanvasInitialized.value[index] = true; // Mark as initialized
+      }
+
+      if (isHovered.value[index]) {
+        isCanvasVisible.value[index] = true; // Show canvas
+        isCanvasLoading.value[index] = false; // Hide loading spinner
+      }
+    }, 300);
+  } else {
+    // Hide canvas and reset loading state on mouse leave
+    if (hoverTimeout.value !== null) clearTimeout(hoverTimeout.value);
+    isCanvasVisible.value[index] = false;
+    isCanvasLoading.value[index] = false;
+  }
 };
 
 onMounted(() => {
@@ -80,6 +123,8 @@ onMounted(() => {
         v-for="(build, index) in blockBuilderBuilds"
         :key="build.buildId + index"
         class="build-item"
+        @mouseenter="toggleCanvasVisibilityOnHover(index, true)"
+        @mouseleave="toggleCanvasVisibilityOnHover(index, false)"
       >
         <h2>
           <span v-if="build.buildGridSize">
@@ -92,7 +137,12 @@ onMounted(() => {
             :columnCount="build.buildGridSize.columnCount ?? 1"
             :renderedBuildBlocks="build.renderedBuildBlocks ?? []"
             :hasControlsDisabled="false"
+            hasAxesHelperDisabled
+            hasGridHelperDisabled
             heightSize="small"
+            :isLoading="isCanvasLoading[index]"
+            :isCanvasVisible="isCanvasVisible[index]"
+            :isZoomEnabled="false"
           />
         </div>
         <div v-else>
@@ -124,6 +174,10 @@ onMounted(() => {
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: #f9f9f9;
+}
+
+.build-item:hover {
+  cursor: pointer; /* Cursor changes to pointer on hover */
 }
 
 .error {
@@ -158,5 +212,9 @@ button:disabled {
 
 button:not(:disabled):hover {
   background-color: #0056b3;
+}
+
+.build-item:hover {
+  cursor: pointer;
 }
 </style>
