@@ -2,7 +2,8 @@
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
-import { ref, onMounted } from 'vue';
+import { debounce } from '@/utils/commonUtils';
+import { ref, onMounted, reactive } from 'vue';
 
 interface BlockBuilderBuild {
   buildGridSize: {
@@ -29,9 +30,13 @@ const isLoadMoreDisabled = ref<boolean>(false);
 const ExclusiveStartKey = ref<string | null>(null);
 const hasMore = ref<boolean>(true);
 const limit = 9;
-const isCanvasVisible = ref<boolean[]>([]); // Controls visibility of canvas
-const isCanvasLoading = ref<boolean[]>([]); // Controls loading spinner
-const hoverTimeout = ref<NodeJS.Timeout | null>(null); // Track the timeout for hover
+
+const canvasState = reactive({
+  hoverDelayTimeout: null as NodeJS.Timeout | null,
+  visibleCanvasIndex: null as number | null,
+  loadingCanvasIndex: null as number | null,
+  hoveredCanvasIndex: null as number | null,
+});
 
 const fetchAWSData = async () => {
   if (isLoading.value || !hasMore.value) return;
@@ -54,11 +59,6 @@ const fetchAWSData = async () => {
     hasMore.value = result.hasMore;
     blockBuilderBuilds.value = [...blockBuilderBuilds.value, ...builds];
 
-    builds.forEach(() => {
-      isCanvasVisible.value.push(false);
-      isCanvasLoading.value.push(false);
-    });
-
     if (!hasMore.value) {
       isLoadMoreDisabled.value = true;
     }
@@ -73,39 +73,28 @@ const loadMoreBuilds = () => {
   fetchAWSData();
 };
 
-const isHovered = ref<boolean[]>([]);
-const isCanvasInitialized = ref<boolean[]>([]); // Track if canvas has been initialized for the first time
-
-const toggleCanvasVisibilityOnHover = (index: number, isHovering: boolean) => {
-  // Prevent repeated hover triggers within the same hover session
-  if (isHovered.value[index] === isHovering) {
+const toggleCanvasVisibilityOnHover = debounce((canvasIndex: number, isHovering: boolean) => {
+  if (!isHovering) {
+    if (canvasState.hoverDelayTimeout !== null) clearTimeout(canvasState.hoverDelayTimeout);
+    canvasState.visibleCanvasIndex = null;
+    canvasState.loadingCanvasIndex = null;
+    canvasState.hoveredCanvasIndex = null;
     return;
   }
 
-  isHovered.value[index] = isHovering;
+  if (canvasState.hoveredCanvasIndex === canvasIndex) return;
 
-  if (isHovering) {
-    // Reset and show the loading spinner
-    isCanvasLoading.value[index] = true;
+  canvasState.hoveredCanvasIndex = canvasIndex;
+  canvasState.loadingCanvasIndex = canvasIndex;
 
-    if (hoverTimeout.value !== null) clearTimeout(hoverTimeout.value);
-    hoverTimeout.value = setTimeout(() => {
-      if (!isCanvasInitialized.value[index]) {
-        isCanvasInitialized.value[index] = true; // Mark as initialized
-      }
+  if (canvasState.hoverDelayTimeout !== null) clearTimeout(canvasState.hoverDelayTimeout);
+  canvasState.visibleCanvasIndex = null;
 
-      if (isHovered.value[index]) {
-        isCanvasVisible.value[index] = true; // Show canvas
-        isCanvasLoading.value[index] = false; // Hide loading spinner
-      }
-    }, 300);
-  } else {
-    // Hide canvas and reset loading state on mouse leave
-    if (hoverTimeout.value !== null) clearTimeout(hoverTimeout.value);
-    isCanvasVisible.value[index] = false;
-    isCanvasLoading.value[index] = false;
-  }
-};
+  canvasState.hoverDelayTimeout = setTimeout(() => {
+    canvasState.loadingCanvasIndex = null;
+    canvasState.visibleCanvasIndex = canvasIndex;
+  }, 200);
+}, 200);
 
 onMounted(() => {
   fetchAWSData();
@@ -140,8 +129,8 @@ onMounted(() => {
             hasAxesHelperDisabled
             hasGridHelperDisabled
             heightSize="small"
-            :isLoading="isCanvasLoading[index]"
-            :isCanvasVisible="isCanvasVisible[index]"
+            :isLoading="canvasState.loadingCanvasIndex === index"
+            :isCanvasVisible="canvasState.visibleCanvasIndex === index"
             :isZoomEnabled="false"
           />
         </div>
