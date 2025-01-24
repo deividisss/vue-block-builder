@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
@@ -8,6 +9,7 @@ const props = withDefaults(
   defineProps<{
     renderedBuildBlocks?: RenderedBuildBlock[];
     columnCount: number;
+    rowCount: number;
     hasControlsDisabled?: boolean;
     hasGridHelperDisabled?: boolean;
     hasAxesHelperDisabled?: boolean;
@@ -23,6 +25,19 @@ const props = withDefaults(
   }
 );
 
+/**
+ * Calculates the camera position based on the row count.
+ * The camera's Y position changes depending on the number of rows, simulating vertical mouse movement.
+ *
+ * @param props.rowCount - The number of rows that will influence the vertical position of the camera.
+ * @returns An array representing the [x, y, z] position of the camera.
+ */
+const cameraPosition = computed<[number, number, number]>(() => {
+  const baseYPosition = 0;
+  const verticalOffset = props.rowCount * 2.2;
+  return [6, baseYPosition + verticalOffset, 10];
+});
+
 const createEdges = (geometry: THREE.BufferGeometry) => {
   const edgesGeometry = new THREE.EdgesGeometry(geometry);
   const edgesMaterial = new THREE.LineBasicMaterial({ color: '#434242' });
@@ -33,6 +48,7 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 <template>
   <div>
     <div :class="['build-grid-3d', props.heightSize || 'medium']">
+      <!-- Loader -->
       <div v-if="isLoading" class="loader">
         <div class="spinner"></div>
         <p>Loading...</p>
@@ -44,7 +60,7 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
         preset="realistic"
         enableProvideBridge
       >
-        <TresPerspectiveCamera :position="[7, 7, 7]" />
+        <TresPerspectiveCamera :position="cameraPosition" />
         <OrbitControls :enabled="!props.hasControlsDisabled" :enableZoom="props.isZoomEnabled" />
 
         <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
@@ -94,11 +110,9 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 .build-grid-3d.small {
   height: 400px;
 }
-
 .build-grid-3d.medium {
   height: 600px;
 }
-
 .build-grid-3d.large {
   height: 1000px;
 }

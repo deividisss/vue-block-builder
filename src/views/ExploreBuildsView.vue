@@ -15,13 +15,12 @@ interface BlockBuilderBuild {
   buildId: string;
 }
 
-// TODO: Render 3D instance only on clcik
-// TODO: Hide Grid
-// TODO: Enable navigation on hover with delay
 // TODO: Implement 3D render imige generation using Lamda and S3
 // TODO: Implemnt skeleton loading
 // TODO: Implemnt tests
 // TODO: Disable 3D rendering when user scrolls
+// TODO: *Add height slider controls
+// TODO: Camera distance based of a Row count
 
 const blockBuilderBuilds = ref<BlockBuilderBuild[]>([]);
 const error = ref<string | null>(null);
@@ -124,6 +123,7 @@ onMounted(() => {
         <div v-if="build && build.buildGridSize">
           <BuildGrid3D
             :columnCount="build.buildGridSize.columnCount ?? 1"
+            :rowCount="build.buildGridSize.rowCount ?? 1"
             :renderedBuildBlocks="build.renderedBuildBlocks ?? []"
             :hasControlsDisabled="false"
             hasAxesHelperDisabled
@@ -149,6 +149,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding-bottom: 60px;
 }
 
 .builds-container {
@@ -166,7 +167,7 @@ onMounted(() => {
 }
 
 .build-item:hover {
-  cursor: pointer; /* Cursor changes to pointer on hover */
+  cursor: pointer;
 }
 
 .error {

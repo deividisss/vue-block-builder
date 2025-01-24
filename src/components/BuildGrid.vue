@@ -376,7 +376,11 @@ const getCursorType = computed(() => {
     </div>
   </div>
   <slot></slot>
-  <BuildGrid3D :renderedBuildBlocks="renderedBuildBlocks" :columnCount="columnCount ?? 1" />
+  <BuildGrid3D
+    :renderedBuildBlocks="renderedBuildBlocks"
+    :columnCount="columnCount ?? 1"
+    :row-count="rowCount ?? 1"
+  />
 </template>
 
 <style scoped>
