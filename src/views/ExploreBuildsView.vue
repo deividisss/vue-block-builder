@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
+import IconSvgCube from '@/components/icons/IconSvgCube.vue';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { debounce } from '@/utils/commonUtils';
@@ -20,7 +21,7 @@ interface BlockBuilderBuild {
 // TODO: Implemnt tests
 // TODO: Disable 3D rendering when user scrolls
 // TODO: *Add height slider controls
-// TODO: Camera distance based of a Row count
+// TODO: *Thumbnails 2D and isometric view options
 
 const blockBuilderBuilds = ref<BlockBuilderBuild[]>([]);
 const error = ref<string | null>(null);
@@ -102,6 +103,8 @@ onMounted(() => {
 
 <template>
   <div class="explore-builds-page">
+    <SvgCube strokeColor="black" strokeWidth="1" pathFillColor="black" />
+    <IconSvgCube pathFillColor="black" />
     <h1>Explore Builds</h1>
     <div v-if="isLoading && blockBuilderBuilds.length === 0" class="loader">Loading...</div>
     <div v-if="error" class="error">Error: {{ error }}</div>
