@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import IconSvgCube from '@/components/icons/IconSvgCube.vue';
+import { CAMERA_VIEWS } from '@/types/cameraConstants';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { debounce } from '@/utils/commonUtils';
@@ -132,8 +133,9 @@ onMounted(() => {
             hasAxesHelperDisabled
             hasGridHelperDisabled
             heightSize="small"
-            :isLoading="canvasState.loadingCanvasIndex === index"
             :isCanvasVisible="canvasState.visibleCanvasIndex === index"
+            :isLoading="canvasState.loadingCanvasIndex === index"
+            :camera-view="CAMERA_VIEWS.FRONT"
             :isZoomEnabled="false"
           />
         </div>

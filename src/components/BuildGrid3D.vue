@@ -4,6 +4,7 @@ import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
+import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 
 const props = withDefaults(
   defineProps<{
@@ -17,25 +18,34 @@ const props = withDefaults(
     isCanvasVisible?: boolean;
     isLoading?: boolean;
     isZoomEnabled?: boolean;
+    cameraView?: CameraView;
   }>(),
   {
     isCanvasVisible: true,
     isLoading: false,
     isZoomEnabled: true,
+    cameraView: CAMERA_VIEWS.ISO,
   }
 );
 
-/**
- * Calculates the camera position based on the row count.
- * The camera's Y position changes depending on the number of rows, simulating vertical mouse movement.
- *
- * @param props.rowCount - The number of rows that will influence the vertical position of the camera.
- * @returns An array representing the [x, y, z] position of the camera.
- */
 const cameraPosition = computed<[number, number, number]>(() => {
-  const baseYPosition = 0;
-  const verticalOffset = props.rowCount * 2.2;
-  return [6, baseYPosition + verticalOffset, 10];
+  const gridSize = Math.max(props.rowCount, props.columnCount);
+  const verticalOffset = gridSize * 1.5;
+  const zOffset = 5 + gridSize * 2;
+
+  if (props.cameraView === 'front') {
+    return [0, 2, zOffset];
+  }
+
+  if (props.cameraView === 'left') {
+    return [-gridSize * 1.2, verticalOffset, 0];
+  }
+
+  if (props.cameraView === 'iso') {
+    return [gridSize * 1.2, verticalOffset, 3 + gridSize * 1.5];
+  }
+
+  throw new Error(`Unknown camera view: ${props.cameraView}`);
 });
 
 const createEdges = (geometry: THREE.BufferGeometry) => {
@@ -43,12 +53,15 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
   const edgesMaterial = new THREE.LineBasicMaterial({ color: '#434242' });
   return new THREE.LineSegments(edgesGeometry, edgesMaterial);
 };
+
+const cameraTarget = computed<[number, number, number]>(() => {
+  return [0, props.rowCount / 2, 0];
+});
 </script>
 
 <template>
   <div>
     <div :class="['build-grid-3d', props.heightSize || 'medium']">
-      <!-- Loader -->
       <div v-if="isLoading" class="loader">
         <div class="spinner"></div>
         <p>Loading...</p>
@@ -60,8 +73,18 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
         preset="realistic"
         enableProvideBridge
       >
-        <TresPerspectiveCamera :position="cameraPosition" />
-        <OrbitControls :enabled="!props.hasControlsDisabled" :enableZoom="props.isZoomEnabled" />
+        <TresPerspectiveCamera
+          :position="cameraPosition"
+          cameraPosition
+          :fov="40"
+          :near="0.1"
+          :far="1000"
+        />
+        <OrbitControls
+          :enabled="!props.hasControlsDisabled"
+          :enableZoom="props.isZoomEnabled"
+          :target="cameraTarget"
+        />
 
         <TresGroup :position="[-props.columnCount / 2 + 0.5, 0.5, 0.5]">
           <TresGroup
