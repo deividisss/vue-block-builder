@@ -80,6 +80,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
           :near="0.1"
           :far="1000"
         />
+        
         <OrbitControls
           :enabled="!props.hasControlsDisabled"
           :enableZoom="props.isZoomEnabled"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import IconSvgCube from '@/components/icons/IconSvgCube.vue';
-import { CAMERA_VIEWS } from '@/types/cameraConstants';
+import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { debounce } from '@/utils/commonUtils';
@@ -31,6 +31,7 @@ const isLoadMoreDisabled = ref<boolean>(false);
 const ExclusiveStartKey = ref<string | null>(null);
 const hasMore = ref<boolean>(true);
 const limit = 9;
+const selectedView = ref<CameraView>(CAMERA_VIEWS.ISO);
 
 const canvasState = reactive({
   hoverDelayTimeout: null as NodeJS.Timeout | null,
@@ -38,6 +39,10 @@ const canvasState = reactive({
   loadingCanvasIndex: null as number | null,
   hoveredCanvasIndex: null as number | null,
 });
+
+const selectView = (view: CameraView) => {
+  selectedView.value = view;
+};
 
 const fetchAWSData = async () => {
   if (isLoading.value || !hasMore.value) return;
@@ -104,9 +109,38 @@ onMounted(() => {
 
 <template>
   <div class="explore-builds-page">
-    <SvgCube strokeColor="black" strokeWidth="1" pathFillColor="black" />
-    <IconSvgCube pathFillColor="black" />
     <h1>Explore Builds</h1>
+
+    <div class="view-selection">
+      <label
+        :class="{ active: selectedView === CAMERA_VIEWS.ISO }"
+        tabindex="0"
+        @keydown.enter="selectView(CAMERA_VIEWS.ISO)"
+        @keydown.space="selectView(CAMERA_VIEWS.ISO)"
+        :aria-selected="selectedView === CAMERA_VIEWS.ISO ? 'true' : 'false'"
+        role="tab"
+      >
+        <input type="radio" v-model="selectedView" :value="CAMERA_VIEWS.ISO" />
+        <IconSvgCube class="view-icon" path-fill-color="black" />
+        Isometric View
+      </label>
+
+      <label
+        :class="{ active: selectedView === CAMERA_VIEWS.FRONT }"
+        tabindex="0"
+        @keydown.enter="selectView(CAMERA_VIEWS.FRONT)"
+        @keydown.space="selectView(CAMERA_VIEWS.FRONT)"
+        :aria-selected="selectedView === CAMERA_VIEWS.FRONT ? 'true' : 'false'"
+        role="tab"
+      >
+        <input type="radio" v-model="selectedView" :value="CAMERA_VIEWS.FRONT" />
+        <svg class="view-icon" width="24" height="24" viewBox="0 0 24 24" fill="#a1d6b2">
+          <rect x="4" y="4" width="16" height="16" stroke="currentColor" stroke-width="2" />
+        </svg>
+        2D Front View
+      </label>
+    </div>
+
     <div v-if="isLoading && blockBuilderBuilds.length === 0" class="loader">Loading...</div>
     <div v-if="error" class="error">Error: {{ error }}</div>
 
@@ -135,7 +169,7 @@ onMounted(() => {
             heightSize="small"
             :isCanvasVisible="canvasState.visibleCanvasIndex === index"
             :isLoading="canvasState.loadingCanvasIndex === index"
-            :camera-view="CAMERA_VIEWS.FRONT"
+            :camera-view="selectedView"
             :isZoomEnabled="false"
           />
         </div>
@@ -150,6 +184,55 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.view-selection {
+  display: flex;
+  gap: 20px;
+  padding: 15px 10px;
+  border: 1px dashed lightgray;
+  border-radius: 6px;
+}
+
+h1 {
+  font-size: xx-large;
+}
+view-selection input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.view-selection label {
+  display: flex;
+  align-items: center;
+  font-size: large;
+  cursor: pointer;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 2px solid lightgray;
+  transition: all 0.2s ease-in-out;
+}
+
+.view-selection input[type='radio'] {
+  display: none;
+}
+
+.view-selection label.active {
+  background-color: #d0f0c0;
+  border-color: #76c7c0;
+}
+
+.view-selection label:hover {
+  border-color: #76c7c0;
+}
+
+.view-icon {
+  width: 24px;
+  height: 24px;
+  transition:
+    fill 0.2s ease-in-out,
+    stroke 0.2s ease-in-out;
+}
+
 .explore-builds-page {
   display: flex;
   flex-direction: column;
