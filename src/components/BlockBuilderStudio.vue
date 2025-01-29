@@ -245,7 +245,7 @@ input[type='number'] {
 }
 
 .build-block-studio {
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .build-block-studio label {

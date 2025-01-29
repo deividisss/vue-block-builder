@@ -238,6 +238,9 @@ view-selection input[type='radio'] {
   flex-direction: column;
   gap: 20px;
   padding-bottom: 60px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 40px;
 }
 
 .builds-container {
