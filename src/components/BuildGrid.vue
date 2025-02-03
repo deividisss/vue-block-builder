@@ -38,7 +38,7 @@ onMounted(() => {
     try {
       cells.value = JSON.parse(storedCells) as Cell[];
     } catch (error) {
-      console.error('Failed to parse saved blocks:', error);
+      console.error('Failed to parse saved cells:', error);
       cells.value = [];
     }
   }

@@ -51,17 +51,6 @@ onBeforeMount(() => {
     } catch (error) {
       console.error('Failed to parse stored storedbuilgridSize:', error);
     }
-
-    try {
-      const parsedStoredbuilgridSize = JSON.parse(storedbuilgridSize) as {
-        columnCount: number;
-        rowCount: number;
-      };
-      rowCountRaw.value = parsedStoredbuilgridSize.rowCount;
-      tempRowCountRaw.value = parsedStoredbuilgridSize.rowCount;
-    } catch (error) {
-      console.error('Failed to parse stored storedbuilgridSize:', error);
-    }
   }
 });
 

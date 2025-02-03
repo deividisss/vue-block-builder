@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
+import CaptureImage from './CaptureImage.vue';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 
@@ -27,6 +28,9 @@ const props = withDefaults(
     cameraView: CAMERA_VIEWS.ISO,
   }
 );
+
+const captureImageRef = ref<InstanceType<typeof CaptureImage> | null>(null);
+const capturedImage = ref<string | null>(null);
 
 const cameraPosition = computed<[number, number, number]>(() => {
   const gridSize = Math.max(props.rowCount, props.columnCount);
@@ -57,6 +61,11 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 const cameraTarget = computed<[number, number, number]>(() => {
   return [0, props.rowCount / 2, 0];
 });
+
+const handleCapture = async () => {
+  if (!captureImageRef.value) return;
+  capturedImage.value = await captureImageRef.value.captureImage();
+};
 </script>
 
 <template>
@@ -80,7 +89,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
           :near="0.1"
           :far="1000"
         />
-        
+
         <OrbitControls
           :enabled="!props.hasControlsDisabled"
           :enableZoom="props.isZoomEnabled"
@@ -115,11 +124,20 @@ const cameraTarget = computed<[number, number, number]>(() => {
         <TresDirectionalLight :position="[0, 2, 8]" :intensity="1.2" cast-shadow />
         <TresGridHelper v-if="!props.hasGridHelperDisabled" />
         <TresAxesHelper v-if="!props.hasAxesHelperDisabled" />
+        <CaptureImage ref="captureImageRef" />
       </TresCanvas>
 
-      <div v-else-if="!isLoading" class="placeholder">
+      <!-- Placeholder when canvas is disabled -->
+      <div v-else-if="!props.isLoading" class="placeholder">
         <p>3D Preview is currently disabled. Hover to reveal it.</p>
       </div>
+    </div>
+
+    <button @click="handleCapture">Capture Image</button>
+
+    <div v-if="capturedImage">
+      <p>Captured Image:</p>
+      <img :src="capturedImage" alt="Captured Scene" />
     </div>
   </div>
 </template>
