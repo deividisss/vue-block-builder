@@ -7,6 +7,9 @@ import CaptureImage from './CaptureImage.vue';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 
+const IMAGE_WIDTH = 1920;
+const IMAGE_HEIGHT = 1080;
+
 const props = withDefaults(
   defineProps<{
     renderedBuildBlocks?: RenderedBuildBlock[];
@@ -65,6 +68,16 @@ const cameraTarget = computed<[number, number, number]>(() => {
 const handleCapture = async () => {
   if (!captureImageRef.value) return;
   capturedImage.value = await captureImageRef.value.captureImage();
+};
+const handleCaptureImageBlob = async (width: number = 800, height: number = 600) => {
+  if (!captureImageRef.value) return;
+  const blob = await captureImageRef.value.captureImageBlob(width, height);
+
+  if (blob) {
+    const imageUrl = URL.createObjectURL(blob);
+    capturedImage.value = imageUrl;
+    // downloadImageFromBlob(blob, 'captured-image.webp');
+  }
 };
 </script>
 
@@ -134,6 +147,9 @@ const handleCapture = async () => {
     </div>
 
     <button @click="handleCapture">Capture Image</button>
+    <button @click="handleCaptureImageBlob(IMAGE_WIDTH, IMAGE_HEIGHT)">
+      Capture Image blob (1024x768)
+    </button>
 
     <div v-if="capturedImage">
       <p>Captured Image:</p>

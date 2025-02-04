@@ -17,9 +17,13 @@ export const clampValue = (value: number, min: number, max: number): number => {
  * @param delay - The debounce delay in milliseconds.
  * @returns A debounced version of the function.
  */
-export function debounce(fn: Function, delay: number) {
+export function debounce<T extends (...args: any[]) => void>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null;
-  return (...args: any[]) => {
+
+  return (...args: Parameters<T>) => {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => fn(...args), delay);
   };
