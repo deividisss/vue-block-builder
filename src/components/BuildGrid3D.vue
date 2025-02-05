@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
-import CaptureImage from './CaptureImage.vue';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
-
-const IMAGE_WIDTH = 1920;
-const IMAGE_HEIGHT = 1080;
 
 const props = withDefaults(
   defineProps<{
@@ -31,9 +27,6 @@ const props = withDefaults(
     cameraView: CAMERA_VIEWS.ISO,
   }
 );
-
-const captureImageRef = ref<InstanceType<typeof CaptureImage> | null>(null);
-const capturedImage = ref<string | null>(null);
 
 const cameraPosition = computed<[number, number, number]>(() => {
   const gridSize = Math.max(props.rowCount, props.columnCount);
@@ -64,21 +57,6 @@ const createEdges = (geometry: THREE.BufferGeometry) => {
 const cameraTarget = computed<[number, number, number]>(() => {
   return [0, props.rowCount / 2, 0];
 });
-
-const handleCapture = async () => {
-  if (!captureImageRef.value) return;
-  capturedImage.value = await captureImageRef.value.captureImage();
-};
-const handleCaptureImageBlob = async (width: number = 800, height: number = 600) => {
-  if (!captureImageRef.value) return;
-  const blob = await captureImageRef.value.captureImageBlob(width, height);
-
-  if (blob) {
-    const imageUrl = URL.createObjectURL(blob);
-    capturedImage.value = imageUrl;
-    // downloadImageFromBlob(blob, 'captured-image.webp');
-  }
-};
 </script>
 
 <template>
@@ -137,23 +115,13 @@ const handleCaptureImageBlob = async (width: number = 800, height: number = 600)
         <TresDirectionalLight :position="[0, 2, 8]" :intensity="1.2" cast-shadow />
         <TresGridHelper v-if="!props.hasGridHelperDisabled" />
         <TresAxesHelper v-if="!props.hasAxesHelperDisabled" />
-        <CaptureImage ref="captureImageRef" />
+        <slot />
       </TresCanvas>
 
       <!-- Placeholder when canvas is disabled -->
       <div v-else-if="!props.isLoading" class="placeholder">
         <p>3D Preview is currently disabled. Hover to reveal it.</p>
       </div>
-    </div>
-
-    <button @click="handleCapture">Capture Image</button>
-    <button @click="handleCaptureImageBlob(IMAGE_WIDTH, IMAGE_HEIGHT)">
-      Capture Image blob (1024x768)
-    </button>
-
-    <div v-if="capturedImage">
-      <p>Captured Image:</p>
-      <img :src="capturedImage" alt="Captured Scene" />
     </div>
   </div>
 </template>

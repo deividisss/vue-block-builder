@@ -380,7 +380,9 @@ const getCursorType = computed(() => {
     :renderedBuildBlocks="renderedBuildBlocks"
     :columnCount="columnCount ?? 1"
     :row-count="rowCount ?? 1"
-  />
+  >
+    <slot name="TresCanvas" />
+  </BuildGrid3D>
 </template>
 
 <style scoped>

@@ -4,6 +4,8 @@ import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
+import CaptureImage from './CaptureImage.vue';
+import { CAMERA_VIEWS } from '@/types/cameraConstants';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -14,6 +16,8 @@ type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES]
 
 const MIN_VALUE = 1;
 const MAX_VALUE = 12;
+const IMAGE_WIDTH = 1920;
+const IMAGE_HEIGHT = 1080;
 
 const TRANSLATIONS = {
   CLEAR_GRID: 'Do you really want to clear the entire grid?',
@@ -33,7 +37,8 @@ const tempRowCountRaw = ref(rowCountRaw.value);
 const isDeleteModeActive = ref(false);
 const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
 const hasRenderedBuildBlocks = ref(false);
-
+const captureImageRef = ref<InstanceType<typeof CaptureImage> | null>(null);
+const capturedImage = ref<string | null>(null);
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
 
 onBeforeMount(() => {
@@ -123,6 +128,26 @@ const handleRowCountChange = (): void => {
 
   rowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
 };
+
+const handleCaptureClick = async (): Promise<void> => {
+  if (!captureImageRef.value) return;
+
+  const blob = await captureImageRef.value.captureImageBlob(
+    IMAGE_WIDTH,
+    IMAGE_HEIGHT,
+    rowCountRaw.value,
+    columnCountRaw.value,
+    CAMERA_VIEWS.FRONT
+  );
+
+  if (blob) {
+    const imageUrl = URL.createObjectURL(blob);
+    capturedImage.value = imageUrl;
+    console.log('Captured image blob:', blob);
+  } else {
+    console.error('Failed to capture image.');
+  }
+};
 </script>
 
 <template>
@@ -163,6 +188,7 @@ const handleRowCountChange = (): void => {
         :isDeleteModeActive="isDeleteModeActive"
         @hasRenderedBuildBlocks="setRenderedBlocksStatus"
       >
+        <template v-slot:TresCanvas><CaptureImage ref="captureImageRef" /></template>
         <ul class="build-block-list">
           <li
             v-if="!isDeleteModeActive"
@@ -221,6 +247,12 @@ const handleRowCountChange = (): void => {
         <br />
         <br />
       </BuildGrid>
+    </div>
+    <button @click="handleCaptureClick">Capture Image</button>
+
+    <div v-if="capturedImage">
+      <p>Captured Image:</p>
+      <img :src="capturedImage" alt="Captured Scene" />
     </div>
   </div>
 </template>
