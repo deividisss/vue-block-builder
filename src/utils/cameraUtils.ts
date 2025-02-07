@@ -38,7 +38,7 @@ export function calculateCameraPosition(
   const zOffset = 5 + gridSize * 2;
 
   const positions: Record<CameraView, [number, number, number]> = {
-    [CAMERA_VIEWS.FRONT]: [0, 2, zOffset],
+    [CAMERA_VIEWS.FRONT]: [0.5, 2, zOffset],
     [CAMERA_VIEWS.LEFT]: [-gridSize * 1.2, verticalOffset, 0],
     [CAMERA_VIEWS.ISO]: [gridSize * 1.2, verticalOffset, 3 + gridSize * 1.5],
   };

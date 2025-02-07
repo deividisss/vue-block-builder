@@ -18,6 +18,13 @@ const MIN_VALUE = 1;
 const MAX_VALUE = 12;
 const IMAGE_WIDTH = 1920;
 const IMAGE_HEIGHT = 1080;
+const BUCKET_NAME = 'blocko-build-images';
+const REGION = 'eu-central-1';
+
+// const API_URL = 'https://jywqfnzo48.execute-api.eu-central-1.amazonaws.com/dev/build-blocks/images';
+const API_URL = 'https://pjjh9jjs96.execute-api.eu-central-1.amazonaws.com/dev/';
+const API_URL_GENRATE_IMG =
+  'https://3uvosftfob.execute-api.eu-central-1.amazonaws.com/dev/generateUrl';
 
 const TRANSLATIONS = {
   CLEAR_GRID: 'Do you really want to clear the entire grid?',
@@ -129,6 +136,63 @@ const handleRowCountChange = (): void => {
   rowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
 };
 
+const getS3ImageUrl = (imageName: string): string => {
+  return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${imageName}`;
+};
+
+function generateUniqueImageName(): string {
+  return `image-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
+}
+
+const getPreSignedUrl = async (fileName: string, fileType: string): Promise<string> => {
+  try {
+    console.log('Requesting pre-signed URL with:', { fileName, fileType });
+
+    const response = await fetch(API_URL_GENRATE_IMG, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fileName, fileType }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Failed to get pre-signed URL: ${response.status} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.preSignedUrl) throw new Error('Response did not contain preSignedUrl');
+
+    console.log('Received pre-signed URL:', data.preSignedUrl);
+    return data.preSignedUrl;
+  } catch (error) {
+    console.error('Error getting pre-signed URL:', error);
+    throw error;
+  }
+};
+
+const uploadImageToS3 = async (imageBlob: Blob, preSignedUrl: string | URL) => {
+  try {
+    const response = await fetch(preSignedUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': imageBlob.type,
+      },
+      body: imageBlob,
+    });
+
+    if (!response.ok) {
+      throw new Error('Image upload failed');
+    }
+
+    console.log('Image uploaded successfully');
+  } catch (error) {
+    console.error('Error uploading image:', error);
+  }
+};
+
 const handleCaptureClick = async (): Promise<void> => {
   if (!captureImageRef.value) return;
 
@@ -141,9 +205,10 @@ const handleCaptureClick = async (): Promise<void> => {
   );
 
   if (blob) {
-    const imageUrl = URL.createObjectURL(blob);
-    capturedImage.value = imageUrl;
-    console.log('Captured image blob:', blob);
+    const uniqueImageName = generateUniqueImageName();
+    const preSignedUrl = await getPreSignedUrl(uniqueImageName, 'image/webp');
+    await uploadImageToS3(blob, preSignedUrl);
+    capturedImage.value = getS3ImageUrl(uniqueImageName);
   } else {
     console.error('Failed to capture image.');
   }
