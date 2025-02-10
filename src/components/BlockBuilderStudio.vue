@@ -6,6 +6,8 @@ import { clampValue } from '@/utils/commonUtils';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
 import CaptureImage from './CaptureImage.vue';
 import { CAMERA_VIEWS } from '@/types/cameraConstants';
+import { usePreSignedUrl } from '@/composables/useS3PreSignedUrl';
+import { useS3ImageUpload } from '@/composables/useS3ImageUpload';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -47,6 +49,9 @@ const hasRenderedBuildBlocks = ref(false);
 const captureImageRef = ref<InstanceType<typeof CaptureImage> | null>(null);
 const capturedImage = ref<string | null>(null);
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
+
+const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRATE_IMG);
+const { isUploading, uploadImageToS3 } = useS3ImageUpload();
 
 onBeforeMount(() => {
   const storedbuilgridSize = localStorage.getItem('builgridSize');
@@ -144,78 +149,54 @@ function generateUniqueImageName(): string {
   return `image-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
 }
 
-const getPreSignedUrl = async (fileName: string, fileType: string): Promise<string> => {
-  try {
-    console.log('Requesting pre-signed URL with:', { fileName, fileType });
-
-    const response = await fetch(API_URL_GENRATE_IMG, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ fileName, fileType }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`Failed to get pre-signed URL: ${response.status} - ${errorBody}`);
-    }
-
-    const data = await response.json();
-
-    if (!data.preSignedUrl) throw new Error('Response did not contain preSignedUrl');
-
-    console.log('Received pre-signed URL:', data.preSignedUrl);
-    return data.preSignedUrl;
-  } catch (error) {
-    console.error('Error getting pre-signed URL:', error);
-    throw error;
-  }
-};
-
-const uploadImageToS3 = async (imageBlob: Blob, preSignedUrl: string | URL) => {
-  try {
-    const response = await fetch(preSignedUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': imageBlob.type,
-      },
-      body: imageBlob,
-    });
-
-    if (!response.ok) {
-      throw new Error('Image upload failed');
-    }
-
-    console.log('Image uploaded successfully');
-  } catch (error) {
-    console.error('Error uploading image:', error);
-  }
-};
-
 const handleCaptureClick = async (): Promise<void> => {
-  if (!captureImageRef.value) return;
+  try {
+    if (!captureImageRef.value) {
+      console.error('Capture Image Reference not found');
+      return;
+    }
 
-  const blob = await captureImageRef.value.captureImageBlob(
-    IMAGE_WIDTH,
-    IMAGE_HEIGHT,
-    rowCountRaw.value,
-    columnCountRaw.value,
-    CAMERA_VIEWS.FRONT
-  );
+    const imageBlob = await captureImageRef.value.captureImageBlob(
+      IMAGE_WIDTH,
+      IMAGE_HEIGHT,
+      rowCountRaw.value,
+      columnCountRaw.value,
+      CAMERA_VIEWS.FRONT
+    );
 
-  if (blob) {
+    if (!imageBlob) {
+      console.error('Failed to capture image blob');
+      return;
+    }
+
     const uniqueImageName = generateUniqueImageName();
+
     const preSignedUrl = await getPreSignedUrl(uniqueImageName, 'image/webp');
-    await uploadImageToS3(blob, preSignedUrl);
+    if (!preSignedUrl) {
+      console.error('Failed to get pre-signed URL');
+      return;
+    }
+
+    await uploadImageToS3(imageBlob, preSignedUrl);
     capturedImage.value = getS3ImageUrl(uniqueImageName);
-  } else {
-    console.error('Failed to capture image.');
+
+    console.log('Image captured and uploaded successfully!');
+  } catch (error) {
+    console.error('Error during image capture and upload process:', error);
   }
 };
 </script>
 
 <template>
+  <div class="status-info">
+    <div v-if="isGeneratingImageUrl">
+      <p>Generating image URL... Please wait.</p>
+    </div>
+    <div v-else-if="isUploading">
+      <p>Uploading image... Please wait.</p>
+    </div>
+  </div>
+
   <div class="build-block-studio">
     <div class="input-list">
       <div>
