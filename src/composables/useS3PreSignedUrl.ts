@@ -4,13 +4,13 @@ export function usePreSignedUrl(API_URL_GENERATE_IMG: string) {
   const preSignedUrl = ref<string | null>(null);
   const isGeneratingImageUrl = ref(false);
   const error = ref<string | null>(null);
-  const success = ref(false); // Add success state
+  const success = ref(false);
 
   const getPreSignedUrl = async (fileName: string, fileType: string): Promise<string | null> => {
     isGeneratingImageUrl.value = true;
     error.value = null;
     preSignedUrl.value = null;
-    success.value = false; // Reset success on new request
+    success.value = false;
 
     try {
       console.log('Requesting pre-signed URL with:', { fileName, fileType });

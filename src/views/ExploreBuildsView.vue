@@ -15,6 +15,10 @@ interface BlockBuilderBuild {
   cells: Cell[];
   renderedBuildBlocks: RenderedBuildBlock[];
   buildId: string;
+  images: {
+    front: string;
+    iso: string;
+  };
 }
 
 // TODO: Implement 3D render imige generation using Lamda and S3
@@ -171,7 +175,30 @@ onMounted(() => {
             :isLoading="canvasState.loadingCanvasIndex === index"
             :camera-view="selectedView"
             :isZoomEnabled="false"
-          />
+            :is-placeholder-message-visible="!(build.images.front || build.images.iso)"
+          >
+            <template #placholderImg>
+              <img
+                v-if="
+                  build.images.front &&
+                  selectedView === CAMERA_VIEWS.FRONT &&
+                  canvasState.visibleCanvasIndex !== index
+                "
+                :src="build.images.front"
+                alt="Front view"
+              />
+
+              <img
+                v-if="
+                  build.images.iso &&
+                  selectedView === CAMERA_VIEWS.ISO &&
+                  canvasState.visibleCanvasIndex !== index
+                "
+                :src="build.images.iso"
+                alt="Isometric view"
+              />
+            </template>
+          </BuildGrid3D>
         </div>
         <div v-else>
           <p>Loading or no data available...</p>
@@ -297,5 +324,14 @@ button:not(:disabled):hover {
 
 .build-item:hover {
   cursor: pointer;
+}
+
+img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+  border: 1px dashed grey;
+  border-radius: 6px;
+  box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
 </style>

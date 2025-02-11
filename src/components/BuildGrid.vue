@@ -44,7 +44,14 @@ onMounted(() => {
   }
 });
 
-async function publishBuildToFakeServer(): Promise<void> {
+async function publishBuildToServer(
+  imageIsoUrlKey: string | URL,
+  imageFrontUrlKey: string | URL
+): Promise<void> {
+  if (renderedBuildBlocks.value.length === 0) {
+    throw new Error('No build blocks to publish');
+  }
+
   const savedBuildData = {
     buildGridSize: {
       columnCount: props.columnCount,
@@ -52,7 +59,13 @@ async function publishBuildToFakeServer(): Promise<void> {
     },
     renderedBuildBlocks: renderedBuildBlocks.value,
     cells: cells.value,
+    images: {
+      front: imageFrontUrlKey,
+      iso: imageIsoUrlKey,
+    },
   };
+
+  console.log('Saved build data:', savedBuildData);
 
   try {
     const response = await fetch(API_URL, {
@@ -107,7 +120,7 @@ defineExpose({
   saveBuild,
   clearBuildGridAlert,
   clearBuildGrid,
-  publishBuildToFakeServer,
+  publishBuildToServer,
 });
 
 const cells = ref<Cell[]>([]);

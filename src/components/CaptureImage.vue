@@ -7,6 +7,8 @@ import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 
 const { renderer, scene } = useTresContext();
 const isRendererReady = ref(false);
+let offscreenCanvas: HTMLCanvasElement | null = null;
+let offscreenRenderer: THREE.WebGLRenderer | null = null;
 
 onMounted(() => {
   if (renderer.value) {
@@ -30,9 +32,13 @@ const restoreHelpers = () => {
   });
 };
 
-const createRenderer = (canvas: HTMLCanvasElement, width: number, height: number) => {
+const createRenderer = (
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number
+): THREE.WebGLRenderer => {
   const newContext = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
-  if (!newContext) return null;
+  if (!newContext) throw new Error('Failed to create WebGL context');
 
   const newRenderer = new THREE.WebGLRenderer({
     canvas,
@@ -64,15 +70,15 @@ const captureImageBlob = (
 
     hideHelpers();
 
-    const offscreenCanvas = document.createElement('canvas');
+    if (!offscreenCanvas) {
+      offscreenCanvas = document.createElement('canvas');
+    }
+
     offscreenCanvas.width = width;
     offscreenCanvas.height = height;
 
-    const newRenderer = createRenderer(offscreenCanvas, width, height);
-    if (!newRenderer) {
-      restoreHelpers();
-      resolve(null);
-      return;
+    if (!offscreenRenderer) {
+      offscreenRenderer = createRenderer(offscreenCanvas, width, height);
     }
 
     const cameraPosition = calculateCameraPosition(rowCount, columnCount, cameraType);
@@ -82,7 +88,8 @@ const captureImageBlob = (
     frontCamera.aspect = width / height;
     frontCamera.updateProjectionMatrix();
 
-    newRenderer.render(scene.value, frontCamera);
+    offscreenRenderer.clear();
+    offscreenRenderer.render(scene.value, frontCamera);
 
     offscreenCanvas.toBlob(
       (blob) => {
@@ -93,8 +100,6 @@ const captureImageBlob = (
           console.error('Error capturing image');
           resolve(null);
         }
-
-        newRenderer.dispose();
       },
       'image/webp',
       0.9

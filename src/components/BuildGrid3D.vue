@@ -19,8 +19,10 @@ const props = withDefaults(
     isLoading?: boolean;
     isZoomEnabled?: boolean;
     cameraView?: CameraView;
+    isPlaceholderMessageVisible?: boolean;
   }>(),
   {
+    isPlaceholderMessageVisible: true,
     isCanvasVisible: true,
     isLoading: false,
     isZoomEnabled: true,
@@ -118,9 +120,11 @@ const cameraTarget = computed<[number, number, number]>(() => {
         <slot />
       </TresCanvas>
 
-      <!-- Placeholder when canvas is disabled -->
       <div v-else-if="!props.isLoading" class="placeholder">
-        <p>3D Preview is currently disabled. Hover to reveal it.</p>
+        <slot name="placholderImg"></slot>
+        <p v-if="isPlaceholderMessageVisible">
+          3D Preview is currently disabled. Hover to reveal it.
+        </p>
       </div>
     </div>
   </div>
@@ -176,6 +180,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
   text-align: center;
   color: #666;
 }
@@ -184,5 +189,11 @@ canvas {
   border: 1px dashed grey;
   border-radius: 6px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+
+.build-grid-3d {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

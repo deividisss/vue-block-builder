@@ -5,7 +5,7 @@ import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
 import { CURSOR_TYPES } from '@/types/cursorConstants';
 import CaptureImage from './CaptureImage.vue';
-import { CAMERA_VIEWS } from '@/types/cameraConstants';
+import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 import { usePreSignedUrl } from '@/composables/useS3PreSignedUrl';
 import { useS3ImageUpload } from '@/composables/useS3ImageUpload';
 
@@ -20,11 +20,7 @@ const MIN_VALUE = 1;
 const MAX_VALUE = 12;
 const IMAGE_WIDTH = 1920;
 const IMAGE_HEIGHT = 1080;
-const BUCKET_NAME = 'blocko-build-images';
-const REGION = 'eu-central-1';
 
-// const API_URL = 'https://jywqfnzo48.execute-api.eu-central-1.amazonaws.com/dev/build-blocks/images';
-const API_URL = 'https://pjjh9jjs96.execute-api.eu-central-1.amazonaws.com/dev/';
 const API_URL_GENRATE_IMG =
   'https://3uvosftfob.execute-api.eu-central-1.amazonaws.com/dev/generateUrl';
 
@@ -49,6 +45,8 @@ const hasRenderedBuildBlocks = ref(false);
 const captureImageRef = ref<InstanceType<typeof CaptureImage> | null>(null);
 const capturedImage = ref<string | null>(null);
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
+const isPublishingBuild = ref(false);
+const isSavingBuildToDatabase = ref(false);
 
 const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRATE_IMG);
 const { isUploading, uploadImageToS3 } = useS3ImageUpload();
@@ -65,6 +63,9 @@ onBeforeMount(() => {
 
       columnCountRaw.value = parsedStoredbuilgridSize.columnCount;
       tempColumnCountRaw.value = parsedStoredbuilgridSize.columnCount;
+
+      rowCountRaw.value = parsedStoredbuilgridSize.rowCount;
+      tempRowCountRaw.value = parsedStoredbuilgridSize.rowCount;
     } catch (error) {
       console.error('Failed to parse stored storedbuilgridSize:', error);
     }
@@ -79,8 +80,36 @@ const handleSaveClick = (): void => {
   buildGridRef.value?.saveBuild();
 };
 
-const handlePublishBuildToFakeServer = (): void => {
-  buildGridRef.value?.publishBuildToFakeServer();
+const handlePublishBuildToServer = async (): Promise<void> => {
+  isPublishingBuild.value = true;
+
+  const imageIsoUrlKey = await captureAndUploadImage(
+    IMAGE_WIDTH,
+    IMAGE_HEIGHT,
+    rowCountRaw.value,
+    columnCountRaw.value,
+    CAMERA_VIEWS.ISO
+  );
+
+  const imageFrontUrlKey = await captureAndUploadImage(
+    IMAGE_WIDTH,
+    IMAGE_HEIGHT,
+    rowCountRaw.value,
+    columnCountRaw.value,
+    CAMERA_VIEWS.FRONT
+  );
+
+  if (!imageIsoUrlKey || !imageFrontUrlKey) return;
+  isSavingBuildToDatabase.value = true;
+
+  try {
+    await buildGridRef.value?.publishBuildToServer(imageIsoUrlKey, imageFrontUrlKey);
+  } catch (error) {
+    console.error('Failed to publish build to server:', error);
+  }
+
+  isSavingBuildToDatabase.value = false;
+  isPublishingBuild.value = false;
 };
 
 const handleClearGridClickAlert = (clearGrid: string, clearGridCanceled: string): void => {
@@ -141,32 +170,34 @@ const handleRowCountChange = (): void => {
   rowCountRaw.value = clampValue(tempRowCountRaw.value, MIN_VALUE, MAX_VALUE);
 };
 
-const getS3ImageUrl = (imageName: string): string => {
-  return `https://${BUCKET_NAME}.s3.${REGION}.amazonaws.com/${imageName}`;
-};
-
 function generateUniqueImageName(): string {
   return `image-${Date.now()}-${Math.random().toString(36).substring(2, 9)}.webp`;
 }
 
-const handleCaptureClick = async (): Promise<void> => {
+const captureAndUploadImage = async (
+  imageWidth: number,
+  imageHeight: number,
+  rowCount: number,
+  columnCount: number,
+  cameraType: CameraView = CAMERA_VIEWS.ISO // Default to 'iso'
+): Promise<string | null> => {
   try {
     if (!captureImageRef.value) {
       console.error('Capture Image Reference not found');
-      return;
+      return null;
     }
 
     const imageBlob = await captureImageRef.value.captureImageBlob(
-      IMAGE_WIDTH,
-      IMAGE_HEIGHT,
-      rowCountRaw.value,
-      columnCountRaw.value,
-      CAMERA_VIEWS.FRONT
+      imageWidth,
+      imageHeight,
+      rowCount,
+      columnCount,
+      cameraType
     );
 
     if (!imageBlob) {
       console.error('Failed to capture image blob');
-      return;
+      return null;
     }
 
     const uniqueImageName = generateUniqueImageName();
@@ -174,29 +205,26 @@ const handleCaptureClick = async (): Promise<void> => {
     const preSignedUrl = await getPreSignedUrl(uniqueImageName, 'image/webp');
     if (!preSignedUrl) {
       console.error('Failed to get pre-signed URL');
-      return;
+      return null;
     }
 
     await uploadImageToS3(imageBlob, preSignedUrl);
-    capturedImage.value = getS3ImageUrl(uniqueImageName);
+    const imageUrlKey = getS3ImageKey(uniqueImageName);
 
     console.log('Image captured and uploaded successfully!');
+    return imageUrlKey;
   } catch (error) {
     console.error('Error during image capture and upload process:', error);
+    return null;
   }
+};
+
+const getS3ImageKey = (imageName: string): string => {
+  return `images/${imageName}`;
 };
 </script>
 
 <template>
-  <div class="status-info">
-    <div v-if="isGeneratingImageUrl">
-      <p>Generating image URL... Please wait.</p>
-    </div>
-    <div v-else-if="isUploading">
-      <p>Uploading image... Please wait.</p>
-    </div>
-  </div>
-
   <div class="build-block-studio">
     <div class="input-list">
       <div>
@@ -235,7 +263,23 @@ const handleCaptureClick = async (): Promise<void> => {
         @hasRenderedBuildBlocks="setRenderedBlocksStatus"
       >
         <template v-slot:TresCanvas><CaptureImage ref="captureImageRef" /></template>
-        <ul class="build-block-list">
+        <div v-if="isPublishingBuild" class="build-block-list">
+          <div class="loader">
+            <div class="spinner"></div>
+            <p>Publishing:</p>
+          </div>
+          <div v-if="isGeneratingImageUrl">
+            <p>Generating image URL</p>
+          </div>
+          <div v-else-if="isUploading">
+            <p>Uploading image</p>
+          </div>
+          <div v-else-if="isSavingBuildToDatabase">
+            <p>Publishing build to server with image URLs</p>
+          </div>
+        </div>
+
+        <ul class="build-block-list" v-if="!isPublishingBuild">
           <li
             v-if="!isDeleteModeActive"
             :class="{ active: activeBuildBlockType === BUILD_BLOCK_TYPES.ONE_X }"
@@ -282,10 +326,10 @@ const handleCaptureClick = async (): Promise<void> => {
           </li>
 
           <li
-            v-if="!isDeleteModeActive"
+            v-if="hasRenderedBuildBlocks && !isDeleteModeActive"
             class="delete-button"
             :class="{ active: isDeleteModeActive, 'two-x': true }"
-            @click="handlePublishBuildToFakeServer"
+            @click="handlePublishBuildToServer"
           >
             PUBLISH
           </li>
@@ -294,7 +338,6 @@ const handleCaptureClick = async (): Promise<void> => {
         <br />
       </BuildGrid>
     </div>
-    <button @click="handleCaptureClick">Capture Image</button>
 
     <div v-if="capturedImage">
       <p>Captured Image:</p>
@@ -369,5 +412,33 @@ input[type='number'] {
 .build-block-list li.active {
   background-color: #d0f0c0;
   border-color: #76c7c0;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 18px;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #76c7c0;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-right: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
