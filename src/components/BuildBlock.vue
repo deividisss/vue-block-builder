@@ -27,7 +27,7 @@ const props = withDefaults(
     }"
     :style="{ cursor: cursorType }"
   >
-    <H1 v-if="msg">BuildBlock - {{ msg }}</H1>
+    <h1 v-if="msg">BuildBlock - {{ msg }}</h1>
     <div v-if="hasStud" class="build-block__stud"></div>
     <div
       v-if="!isStartPart && !isEndPart"
