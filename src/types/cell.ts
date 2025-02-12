@@ -9,4 +9,5 @@ export interface Cell {
   isEndCell: boolean;
   disabled: boolean;
   renderedBuildBLockId?: string;
+  color: string;
 }

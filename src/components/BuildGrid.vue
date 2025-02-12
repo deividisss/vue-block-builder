@@ -18,6 +18,7 @@ const props = defineProps<{
   rowCount?: number;
   activeBuildBlockType?: BuildBlockType;
   isDeleteModeActive: boolean;
+  activeBuildColor: string;
 }>();
 
 // const API_URL = 'http://localhost:3000/block-builder-builds';
@@ -125,7 +126,6 @@ defineExpose({
 
 const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
-const activeBuildColor: Ref<string> = ref('#a1d6b2');
 const hoverColor: Ref<string> = ref('red');
 const isExpanded = ref(false);
 
@@ -145,6 +145,7 @@ function setupGridCells(columnCount: number, rowCount: number) {
         disabled: false,
         isStartCell: false,
         isEndCell: false,
+        color: '',
       });
     }
   }
@@ -271,6 +272,7 @@ function buildCellContent(index: number): void {
   if (!isTwoXBlock.value) {
     cell.active = true;
     cell.renderedBuildBLockId = newUniqueId;
+    cell.color = props.activeBuildColor;
 
     const newRenderedBuildGBLock: RenderedBuildBlock = {
       id: newUniqueId,
@@ -281,6 +283,7 @@ function buildCellContent(index: number): void {
         z: 0,
       },
       type: BUILD_BLOCK_TYPES.ONE_X,
+      color: props.activeBuildColor,
     };
 
     renderedBuildBlocks.value.push(newRenderedBuildGBLock);
@@ -304,6 +307,8 @@ function buildCellContent(index: number): void {
   cell.isStartCell = true;
   cell.renderedBuildBLockId = newUniqueId;
   cellRight.renderedBuildBLockId = newUniqueId;
+  cell.color = props.activeBuildColor;
+  cellRight.color = props.activeBuildColor;
 
   const newRenderedBuildGBLock: RenderedBuildBlock = {
     id: newUniqueId,
@@ -314,11 +319,12 @@ function buildCellContent(index: number): void {
       z: 0,
     },
     type: BUILD_BLOCK_TYPES.TWO_X,
+    color: props.activeBuildColor,
   };
 
   renderedBuildBlocks.value.push(newRenderedBuildGBLock);
 }
-6;
+
 function getNextCell(cell: Cell): Cell | undefined {
   const columnCount = props.columnCount ?? 1;
   const nextCellIndex = cell.rowIndex * columnCount + (cell.columnIndex + 1);
@@ -350,6 +356,7 @@ const getCursorType = computed(() => {
 
 <template>
   <div v-if="props.columnCount && props.columnCount > 13" class="tools-bar">
+    {{ props.activeBuildColor }}
     <button @click="isExpanded = !isExpanded">
       <span v-if="isExpanded">🔍➖</span>
       <span v-else>🔍➕</span>
@@ -388,6 +395,7 @@ const getCursorType = computed(() => {
           :class="{ 'is-multiblock': cell.isStartCell || cell.isEndCell }"
         >
           <BuildBlock
+            :color="cell.color"
             v-if="cell.active"
             :is-disabled="cell.disabled"
             :has-stud="!isCellAboveActive(cell)"

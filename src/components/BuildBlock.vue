@@ -12,6 +12,7 @@ const props = withDefaults(
     isEndPart?: boolean;
     isDisabled?: boolean;
     cursorType?: CursorType;
+    color?: string;
   }>(),
   {
     cursorType: CURSOR_TYPES.DEFAULT as CursorType,
@@ -25,21 +26,28 @@ const props = withDefaults(
     :class="{
       'is-inactive': isDisabled,
     }"
-    :style="{ cursor: cursorType }"
+    :style="{ cursor: cursorType, backgroundColor: props.color }"
   >
     <h1 v-if="msg">BuildBlock - {{ msg }}</h1>
-    <div v-if="hasStud" class="build-block__stud"></div>
+    <div v-if="hasStud" class="build-block__stud" :style="{ backgroundColor: props.color }"></div>
     <div
       v-if="!isStartPart && !isEndPart"
       class="build-block__body build-block__body has-border-left has-border-right has-border-bottom has-border-top"
+      :style="{ backgroundColor: props.color }"
     ></div>
     <!-- {{ props.cursorType }} -->
     <template v-if="isStartPart">
-      <div class="build-block__body has-border-left has-border-bottom has-border-top"></div>
+      <div
+        class="build-block__body has-border-left has-border-bottom has-border-top"
+        :style="{ backgroundColor: props.color }"
+      ></div>
     </template>
 
     <template v-if="isEndPart">
-      <div class="build-block__body has-border-right has-border-bottom has-border-top"></div>
+      <div
+        class="build-block__body has-border-right has-border-bottom has-border-top"
+        :style="{ backgroundColor: props.color }"
+      ></div>
     </template>
   </div>
 </template>

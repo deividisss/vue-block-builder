@@ -97,7 +97,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
           >
             <TresMesh v-if="block.type === '1x'">
               <TresBoxGeometry :args="[1, 1, 1]" />
-              <TresMeshMatcapMaterial color="#a1d6b2" />
+              <TresMeshMatcapMaterial :color="block.color || '#a1d6b2'" />
               <primitive :object="createEdges(new THREE.BoxGeometry(1, 1, 1))" />
             </TresMesh>
 
@@ -108,7 +108,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
               />
               <TresMesh :position="[0.5, 0, 0]">
                 <TresBoxGeometry :args="[2, 1, 1]" />
-                <TresMeshMatcapMaterial color="#a1d6b2" />
+                <TresMeshMatcapMaterial :color="block.color || '#a1d6b2'" />
               </TresMesh>
             </TresGroup>
           </TresGroup>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref } from 'vue';
+import { computed, onBeforeMount, onMounted, reactive, ref } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import BuildGrid from './BuildGrid.vue';
 import { clampValue } from '@/utils/commonUtils';
@@ -8,6 +8,8 @@ import CaptureImage from './CaptureImage.vue';
 import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 import { usePreSignedUrl } from '@/composables/useS3PreSignedUrl';
 import { useS3ImageUpload } from '@/composables/useS3ImageUpload';
+import ColorPicker from '@radial-color-picker/vue-color-picker';
+import '@radial-color-picker/vue-color-picker/dist/vue-color-picker.min.css';
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -47,6 +49,11 @@ const capturedImage = ref<string | null>(null);
 const buildGridRef = ref<InstanceType<typeof BuildGrid> | null>(null);
 const isPublishingBuild = ref(false);
 const isSavingBuildToDatabase = ref(false);
+
+const hue = ref(145); // Greenish color
+const saturation = ref(40); // 40% saturation
+const luminosity = ref(70); // 70% lightness
+const alpha = ref(1); // Fully opaque
 
 const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRATE_IMG);
 const { isUploading, uploadImageToS3 } = useS3ImageUpload();
@@ -222,6 +229,27 @@ const captureAndUploadImage = async (
 const getS3ImageKey = (imageName: string): string => {
   return `images/${imageName}`;
 };
+
+const hslToHex = computed(() => {
+  const h = hue.value;
+  const s = saturation.value / 100;
+  const l = luminosity.value / 100;
+
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const color = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(color * 255)
+      .toString(16)
+      .padStart(2, '0');
+  };
+
+  return `#${f(0)}${f(8)}${f(4)}`;
+});
+
+const onInput = (newHue: number) => {
+  hue.value = newHue;
+};
 </script>
 
 <template>
@@ -261,6 +289,7 @@ const getS3ImageKey = (imageName: string): string => {
         :rowCount="rowCountRaw"
         :isDeleteModeActive="isDeleteModeActive"
         @hasRenderedBuildBlocks="setRenderedBlocksStatus"
+        :activeBuildColor="hslToHex"
       >
         <template v-slot:TresCanvas><CaptureImage ref="captureImageRef" /></template>
         <div v-if="isPublishingBuild" class="build-block-list">
@@ -295,6 +324,18 @@ const getS3ImageKey = (imageName: string): string => {
           >
             <BuildBlock hasStud isStartPart :cursor-type="CURSOR_TYPES.POINTER" />
             <BuildBlock hasStud isEndPart :cursor-type="CURSOR_TYPES.POINTER" />
+          </li>
+
+          <li class="color-wrapper">
+            <ColorPicker
+              v-model:hue="hue"
+              v-model:saturation="saturation"
+              v-model:luminosity="luminosity"
+              v-model:alpha="alpha"
+              @input="onInput"
+              :initially-collapsed="true"
+              class="color-picker"
+            />
           </li>
 
           <li
@@ -444,5 +485,19 @@ input[type='number'] {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.color-picker {
+  position: absolute;
+}
+
+li.color-wrapper {
+  position: relative;
+
+  border: none;
+}
+
+li.color-wrapper:hover {
+  background-color: #fff;
 }
 </style>
