@@ -17,7 +17,7 @@ const BUILD_BLOCK_TYPES = {
 type BuildBlockType = (typeof BUILD_BLOCK_TYPES)[keyof typeof BUILD_BLOCK_TYPES];
 
 const MIN_VALUE = 1;
-const MAX_VALUE = 12;
+const MAX_VALUE = 32;
 const IMAGE_WIDTH = 1920;
 const IMAGE_HEIGHT = 1080;
 
@@ -35,9 +35,9 @@ const TRANSLATIONS = {
   CHANGE_COLUMN_COUNT: `Changing the column count will delete the current blocks in the grid. Do you want to proceed?`,
 };
 
-const columnCountRaw = ref(10);
+const columnCountRaw = ref(16);
 const tempColumnCountRaw = ref(columnCountRaw.value);
-const rowCountRaw = ref(3);
+const rowCountRaw = ref(6);
 const tempRowCountRaw = ref(rowCountRaw.value);
 const isDeleteModeActive = ref(false);
 const activeBuildBlockType = ref<BuildBlockType>(BUILD_BLOCK_TYPES.TWO_X);
@@ -367,6 +367,10 @@ input[type='number'] {
   padding-bottom: 30px;
 }
 .build-block-list {
+  position: sticky;
+  z-index: 999;
+  bottom: -9px;
+  background-color: #fff;
   min-height: 68px;
   display: flex;
   gap: 20px;

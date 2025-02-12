@@ -127,6 +127,7 @@ const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const activeBuildColor: Ref<string> = ref('#a1d6b2');
 const hoverColor: Ref<string> = ref('red');
+const isExpanded = ref(false);
 
 function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];
@@ -348,47 +349,59 @@ const getCursorType = computed(() => {
 </script>
 
 <template>
-  <div
-    class="build-grid"
-    :style="{ gridTemplateColumns: `repeat(${props.columnCount}, minmax(0, 1fr))` }"
-  >
+  <div v-if="props.columnCount && props.columnCount > 13" class="tools-bar">
+    <button @click="isExpanded = !isExpanded">
+      <span v-if="isExpanded">🔍➖</span>
+      <span v-else>🔍➕</span>
+    </button>
+  </div>
+  <div class="build-gri-wrapper">
     <div
-      class="build-grid__cell"
-      :class="{
-        'has-outline': cell.hasOutline,
-        'is-inactive': cell.hasDisabledOutline,
-        'has-no-hover': cell.active || isDeleteModeActive,
+      class="build-grid"
+      :style="{
+        gridTemplateColumns: `repeat(${props.columnCount}, minmax(${isExpanded ? 100 : 35}px, 1fr))`,
       }"
-      v-for="cell in cells"
-      :key="cell.index"
-      @click="isDeleteModeActive ? removeBuildBlock(cell.index) : buildCellContent(cell.index)"
-      @mouseenter="
-        isDeleteModeActive
-          ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, true)
-          : setCellHoverOutline(cell, true)
-      "
-      @mouseleave="
-        isDeleteModeActive
-          ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, false)
-          : setCellHoverOutline(cell, false)
-      "
     >
       <div
-        class="build-block-wrapper"
-        :class="{ 'is-multiblock': cell.isStartCell || cell.isEndCell }"
+        class="build-grid__cell"
+        :class="{
+          'has-outline': cell.hasOutline,
+          'is-inactive': cell.hasDisabledOutline,
+          'has-no-hover': cell.active || isDeleteModeActive,
+        }"
+        v-for="cell in cells"
+        :key="cell.index"
+        @click="isDeleteModeActive ? removeBuildBlock(cell.index) : buildCellContent(cell.index)"
+        @mouseenter="
+          isDeleteModeActive
+            ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, true)
+            : setCellHoverOutline(cell, true)
+        "
+        @mouseleave="
+          isDeleteModeActive
+            ? setCellHoverOutlineDeleteMode(cell.renderedBuildBLockId, false)
+            : setCellHoverOutline(cell, false)
+        "
       >
-        <BuildBlock
-          v-if="cell.active"
-          :is-disabled="cell.disabled"
-          :has-stud="!isCellAboveActive(cell)"
-          :is-start-part="cell.isStartCell"
-          :is-end-part="cell.isEndCell"
-          :cursor-type="getCursorType(cell)"
-        />
+        <div
+          class="build-block-wrapper"
+          :class="{ 'is-multiblock': cell.isStartCell || cell.isEndCell }"
+        >
+          <BuildBlock
+            v-if="cell.active"
+            :is-disabled="cell.disabled"
+            :has-stud="!isCellAboveActive(cell)"
+            :is-start-part="cell.isStartCell"
+            :is-end-part="cell.isEndCell"
+            :cursor-type="getCursorType(cell)"
+          />
+        </div>
       </div>
     </div>
   </div>
+
   <slot></slot>
+
   <BuildGrid3D
     :renderedBuildBlocks="renderedBuildBlocks"
     :columnCount="columnCount ?? 1"
@@ -421,6 +434,9 @@ const getCursorType = computed(() => {
   background-color: #ce93d8;
   border: 1px solid #ce93d8;
   gap: 2px;
+  overflow-x: auto;
+  overflow-y: clip;
+  position: relative;
 }
 
 .build-grid__cell {
@@ -480,5 +496,30 @@ const getCursorType = computed(() => {
   border-bottom: 0;
   width: 1rem;
   height: 0.3rem;
+}
+.build-gri-wrapper {
+  position: relative;
+}
+
+.tools-bar {
+  text-align: right;
+  padding: 12px 20px;
+  border: 1px solid lightgray;
+  border-bottom: none;
+
+  position: sticky;
+  top: 0;
+  z-index: 500;
+}
+.tools-bar button {
+  padding: 8px 18px;
+  font-size: 1rem;
+  color: white;
+  border: 2px solid lightgray;
+  background-color: #fff;
+  /* border: none; */
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 </style>
