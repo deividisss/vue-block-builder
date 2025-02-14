@@ -14,4 +14,5 @@ export interface RenderedBuildBlock {
     z: number;
   };
   type: BuildBlockType;
+  color: string;
 }

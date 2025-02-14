@@ -1,49 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { RouterLink, RouterView } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { RouterView } from 'vue-router';
+import AppFooter from './components/AppFooter.vue';
+import AppHeader from './components/AppHeader.vue';
 
-const navIsVisible = ref(true);
+const isPageReady = ref(false);
+
+onMounted(() => {
+  setTimeout(() => {
+    isPageReady.value = true;
+  }, 100);
+});
 </script>
 
 <template>
-  <header v-if="navIsVisible">
-    <nav>
-      <ul>
-        <li>
-          <RouterLink to="/">BLOCK_BUILDER</RouterLink>
-        </li>
-        <li>
-          <!-- <RouterLink to="/about">| Explore builds</RouterLink> -->
-        </li>
-      </ul>
-    </nav>
-  </header>
+  <AppHeader />
 
-  <RouterView />
+  <main>
+    <div class="wrapper">
+      <div class="content">
+        <RouterView />
+      </div>
+    </div>
+  </main>
+
+  <AppFooter v-if="isPageReady" />
 </template>
 
 <style scoped>
-header {
-  display: flex;
-  justify-content: center;
-  padding: 2rem;
-  font-size: xxx-large;
-}
-
-@media (max-width: 576px) {
-  header {
-    font-size: xx-large;
-  }
-}
-
-ul {
-  display: flex;
-  gap: 0.4rem;
-}
-
-main {
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
+.content {
+  padding: 40px 20px;
 }
 </style>
