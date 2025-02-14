@@ -356,7 +356,10 @@ const getCursorType = computed(() => {
 
 <template>
   <div v-if="props.columnCount && props.columnCount > 13" class="tools-bar">
-    {{ props.activeBuildColor }}
+    <!-- <button>
+      <span :style="{ color: props.activeBuildColor }">{{ props.activeBuildColor }}&nbsp;</span>
+    </button> -->
+
     <button @click="isExpanded = !isExpanded">
       <span v-if="isExpanded">🔍➖</span>
       <span v-else>🔍➕</span>
@@ -514,11 +517,16 @@ const getCursorType = computed(() => {
   padding: 12px 20px;
   border: 1px solid lightgray;
   border-bottom: none;
-
   position: sticky;
   top: 0;
   z-index: 500;
 }
+
+.tools-bar button {
+  min-height: 42px;
+  margin-left: 5px;
+}
+
 .tools-bar button {
   padding: 8px 18px;
   font-size: 1rem;

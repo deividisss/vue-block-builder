@@ -395,15 +395,12 @@ input[type='number'] {
   font-size: large;
 }
 
-.build-block-studio {
-  padding: 40px 20px;
-}
-
 .build-block-studio label {
   font-size: large;
 }
 .input-list {
   display: flex;
+  flex-wrap: wrap;
   gap: 30px;
   padding-bottom: 30px;
 }
@@ -414,14 +411,24 @@ input[type='number'] {
   background-color: #fff;
   min-height: 68px;
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   border: 1px solid lightgrey;
   border-top: none;
   padding: 20px;
+  margin-top: -1px;
   align-items: center;
   border-bottom-right-radius: 12px;
   border-bottom-left-radius: 12px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+}
+@media (max-width: 768px) {
+  .build-block-list {
+    display: flex;
+    gap: 1rem;
+    flex-direction: column;
+    position: static;
+  }
 }
 
 .build-block-list li {

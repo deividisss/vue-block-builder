@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
 import IconSvgCube from './components/icons/IconSvgCube.vue';
+import AppFooter from './components/AppFooter.vue';
 const navIsVisible = ref(true);
 </script>
 
@@ -22,16 +23,26 @@ const navIsVisible = ref(true);
     </nav>
   </header>
 
-  <div class="wrapper">
-    <RouterView />
-  </div>
+  <main>
+    <div class="wrapper">
+      <div class="content">
+        <RouterView />
+      </div>
+    </div>
+  </main>
+
+  <AppFooter />
 </template>
 
 <style scoped>
 header {
-  padding: 1.4rem;
+  padding: 20px 0;
   font-size: xxx-large;
-  border: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+}
+
+.content {
+  padding: 40px 20px;
 }
 
 @media (max-width: 576px) {
@@ -54,11 +65,5 @@ li {
 li a {
   /* color: #3d6c4d; */
   font-weight: 700;
-}
-
-main {
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
 }
 </style>

@@ -21,12 +21,10 @@ interface BlockBuilderBuild {
   };
 }
 
-// TODO: Implement 3D render imige generation using Lamda and S3
 // TODO: Implemnt skeleton loading
 // TODO: Implemnt tests
 // TODO: Disable 3D rendering when user scrolls
 // TODO: *Add height slider controls
-// TODO: *Thumbnails 2D and isometric view options
 
 const blockBuilderBuilds = ref<BlockBuilderBuild[]>([]);
 const error = ref<string | null>(null);
@@ -162,45 +160,49 @@ onMounted(() => {
           </span>
         </h2>
 
-        <div v-if="build && build.buildGridSize">
-          <BuildGrid3D
-            :columnCount="build.buildGridSize.columnCount ?? 1"
-            :rowCount="build.buildGridSize.rowCount ?? 1"
-            :renderedBuildBlocks="build.renderedBuildBlocks ?? []"
-            :hasControlsDisabled="false"
-            hasAxesHelperDisabled
-            hasGridHelperDisabled
-            heightSize="small"
-            :isCanvasVisible="canvasState.visibleCanvasIndex === index"
-            :isLoading="canvasState.loadingCanvasIndex === index"
-            :camera-view="selectedView"
-            :isZoomEnabled="false"
-            :is-placeholder-message-visible="!(build.images.front || build.images.iso)"
-          >
-            <template #placholderImg>
-              <img
-                v-if="
-                  build.images.front &&
-                  selectedView === CAMERA_VIEWS.FRONT &&
-                  canvasState.visibleCanvasIndex !== index
-                "
-                :src="build.images.front"
-                alt="Front view"
-              />
+        <BuildGrid3D
+          v-if="build && build.buildGridSize"
+          :columnCount="build.buildGridSize.columnCount ?? 1"
+          :rowCount="build.buildGridSize.rowCount ?? 1"
+          :renderedBuildBlocks="build.renderedBuildBlocks ?? []"
+          :hasControlsDisabled="false"
+          hasAxesHelperDisabled
+          hasGridHelperDisabled
+          heightSize="small"
+          :isCanvasVisible="canvasState.visibleCanvasIndex === index"
+          :isLoading="canvasState.loadingCanvasIndex === index"
+          :camera-view="selectedView"
+          :isZoomEnabled="false"
+          :is-placeholder-message-visible="!(build.images.front || build.images.iso)"
+        >
+          <transition name="fade" mode="out-in">sdd</transition>
+          <template #placholderImg v-if="build">
+            <img
+              v-show="
+                build.images.front &&
+                selectedView === CAMERA_VIEWS.FRONT &&
+                canvasState.visibleCanvasIndex !== index
+              "
+              :src="build.images.front"
+              alt="Front view"
+              loading="lazy"
+            />
 
-              <img
-                v-if="
-                  build.images.iso &&
-                  selectedView === CAMERA_VIEWS.ISO &&
-                  canvasState.visibleCanvasIndex !== index
-                "
-                :src="build.images.iso"
-                alt="Isometric view"
-              />
-            </template>
-          </BuildGrid3D>
-        </div>
-        <div v-else>
+            <img
+              v-show="
+                build.images.iso &&
+                selectedView === CAMERA_VIEWS.ISO &&
+                canvasState.visibleCanvasIndex !== index
+              "
+              :src="build.images.iso"
+              alt="Isometric view"
+              loading="lazy"
+            />
+          </template>
+        </BuildGrid3D>
+
+        <div v-if="!build">
+          asdfa
           <p>Loading or no data available...</p>
         </div>
       </div>
@@ -213,6 +215,7 @@ onMounted(() => {
 <style scoped>
 .view-selection {
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   padding: 15px 10px;
   border: 1px dashed lightgray;
@@ -264,16 +267,18 @@ view-selection input[type='radio'] {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  padding-bottom: 60px;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 40px;
 }
 
 .builds-container {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
   gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .builds-container {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .build-item {
@@ -295,7 +300,7 @@ view-selection input[type='radio'] {
 .loader {
   font-size: 1.2em;
   font-weight: bold;
-  color: #007bff;
+  color: #a1d6b2;
 }
 
 h2 {
@@ -304,11 +309,12 @@ h2 {
 
 button {
   padding: 10px 20px;
-  font-size: 1rem;
+  font-size: large;
+  font-weight: bold;
   color: white;
-  background-color: #007bff;
+  background-color: #a1d6b2;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -319,7 +325,7 @@ button:disabled {
 }
 
 button:not(:disabled):hover {
-  background-color: #0056b3;
+  background-color: #7fbb98;
 }
 
 .build-item:hover {
@@ -330,7 +336,6 @@ img {
   width: 100%;
   height: 400px;
   object-fit: cover;
-  border: 1px dashed grey;
   border-radius: 6px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
