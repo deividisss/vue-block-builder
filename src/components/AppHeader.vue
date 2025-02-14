@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import IconSvgCube from './icons/IconSvgCube.vue';
 import { RouterLink } from 'vue-router';
 </script>
