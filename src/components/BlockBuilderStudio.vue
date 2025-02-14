@@ -11,6 +11,8 @@ import { useS3ImageUpload } from '@/composables/useS3ImageUpload';
 import ColorPicker from '@radial-color-picker/vue-color-picker';
 import '@radial-color-picker/vue-color-picker/dist/vue-color-picker.min.css';
 
+// TODO: Save to local storage loader
+
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
   TWO_X: '2x',
