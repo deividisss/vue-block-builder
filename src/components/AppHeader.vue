@@ -13,10 +13,10 @@ import { RouterLink } from 'vue-router';
 
         <ul class="nav-list">
           <li>
-            <RouterLink to="/" class="nav-item">New build</RouterLink>
+            <RouterLink to="/" class="nav-item">CTREATE BUILD</RouterLink>
           </li>
           <li>
-            <RouterLink to="/explore-builds" class="nav-item">Explore builds</RouterLink>
+            <RouterLink to="/explore-builds" class="nav-item">EXPLORE BUILDS</RouterLink>
           </li>
         </ul>
       </nav>
