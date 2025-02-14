@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { RouterLink, RouterView } from 'vue-router';
 import IconSvgCube from './components/icons/IconSvgCube.vue';
 import AppFooter from './components/AppFooter.vue';
+
 const navIsVisible = ref(true);
+const isPageReady = ref(false);
+
+onMounted(() => {
+  setTimeout(() => {
+    isPageReady.value = true;
+  }, 10);
+});
 </script>
 
 <template>
@@ -31,7 +39,7 @@ const navIsVisible = ref(true);
     </div>
   </main>
 
-  <AppFooter />
+  <AppFooter v-if="isPageReady" />
 </template>
 
 <style scoped>

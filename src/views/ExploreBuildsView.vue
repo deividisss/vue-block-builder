@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import IconSvgCube from '@/components/icons/IconSvgCube.vue';
+import SkeletonLoader from '@/components/SkeletonLoader.vue';
 import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
@@ -143,8 +144,10 @@ onMounted(() => {
       </label>
     </div>
 
-    <div v-if="isLoading && blockBuilderBuilds.length === 0" class="loader">Loading...</div>
+    <!-- <div v-if="isLoading && blockBuilderBuilds.length === 0" class="loader">Loading...</div> -->
     <div v-if="error" class="error">Error: {{ error }}</div>
+
+    <SkeletonLoader v-if="isLoading && blockBuilderBuilds.length === 0" />
 
     <div v-if="!error" class="builds-container">
       <div
@@ -175,7 +178,6 @@ onMounted(() => {
           :isZoomEnabled="false"
           :is-placeholder-message-visible="!(build.images.front || build.images.iso)"
         >
-          <transition name="fade" mode="out-in">sdd</transition>
           <template #placholderImg v-if="build">
             <img
               v-show="
@@ -202,7 +204,6 @@ onMounted(() => {
         </BuildGrid3D>
 
         <div v-if="!build">
-          asdfa
           <p>Loading or no data available...</p>
         </div>
       </div>
