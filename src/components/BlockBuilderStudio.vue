@@ -44,6 +44,8 @@ const TRANSLATIONS = {
   CHANGE_COLUMN_COUNT: `Changing the column count will delete the current blocks in the grid. Do you want to proceed?`,
 };
 
+const isMobile = window.innerWidth <= 768;
+
 const columnCountRaw = ref(16);
 const tempColumnCountRaw = ref(columnCountRaw.value);
 const rowCountRaw = ref(6);
@@ -66,8 +68,6 @@ const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRAT
 const { isUploading, uploadImageToS3 } = useS3ImageUpload();
 
 onBeforeMount(() => {
-  const isMobile = window.innerWidth <= 768;
-
   columnCountRaw.value = isMobile ? 6 : 16;
   tempColumnCountRaw.value = columnCountRaw.value;
 
@@ -305,6 +305,7 @@ const onInput = (newHue: number) => {
         :isDeleteModeActive="isDeleteModeActive"
         @hasRenderedBuildBlocks="setRenderedBlocksStatus"
         :activeBuildColor="hslToHex"
+        :isMobile="isMobile"
       >
         <template v-slot:TresCanvas><CaptureImage ref="captureImageRef" /></template>
         <div v-if="isPublishingBuild" class="build-block-list">

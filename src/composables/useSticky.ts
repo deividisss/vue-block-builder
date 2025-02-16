@@ -8,7 +8,6 @@ export function useSticky(elementRef: Ref<HTMLElement | null>) {
     if (elementRef.value) {
       const rect = elementRef.value.getBoundingClientRect();
       isSticky.value = rect.top <= 0;
-      console.log('isSticky updated:', isSticky.value);
     }
   }, 50);
 

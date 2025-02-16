@@ -21,6 +21,7 @@ const props = defineProps<{
   activeBuildBlockType?: BuildBlockType;
   isDeleteModeActive: boolean;
   activeBuildColor: string;
+  isMobile: boolean;
 }>();
 
 // const API_URL = 'http://localhost:3000/block-builder-builds';
@@ -383,6 +384,7 @@ const handleUpdate = (newValue: string) => {
     @toggle-expand="isExpanded = !isExpanded"
     size="half"
     class="input-like-text"
+    :ismobile="isMobile"
   />
 
   <div class="build-gri-wrapper">

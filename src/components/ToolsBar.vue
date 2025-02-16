@@ -8,6 +8,7 @@ const props = defineProps<{
   columnCount: number;
   isExpanded?: boolean;
   size?: ToolsBarSize;
+  ismobile?: boolean;
 }>();
 
 const size = props.size ?? 'full';
@@ -22,7 +23,7 @@ const { isSticky } = useSticky(toolsBarRef);
 
 <template>
   <div
-    v-if="props.columnCount && props.columnCount > 13"
+    v-if="ismobile || (props.columnCount && props.columnCount > 13)"
     ref="toolsBarRef"
     class="tools-bar"
     :class="{
