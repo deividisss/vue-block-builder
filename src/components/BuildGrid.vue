@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Ref, watch, computed, defineExpose, onMounted } from 'vue';
+import { ref, type Ref, watch, computed, defineExpose, onMounted, onUnmounted } from 'vue';
 import BuildBlock from './BuildBlock.vue';
 import { getCellRightIndex, hasRightAdjacentColumn } from '@/utils/gridUtils/gridUtils';
 import type { Cell } from '@/types/cell';
@@ -11,6 +11,8 @@ import {
   type BuildBlockType,
   type RenderedBuildBlock,
 } from '@/types/renderedBuildBlock';
+import ToolsBar from './ToolsBar.vue';
+import InputLikeText from './InputLikeText.vue';
 
 const props = defineProps<{
   buildGridSize?: number;
@@ -19,6 +21,7 @@ const props = defineProps<{
   activeBuildBlockType?: BuildBlockType;
   isDeleteModeActive: boolean;
   activeBuildColor: string;
+  isMobile: boolean;
 }>();
 
 // const API_URL = 'http://localhost:3000/block-builder-builds';
@@ -27,6 +30,7 @@ const API_URL = 'https://jywqfnzo48.execute-api.eu-central-1.amazonaws.com/dev/b
 onMounted(() => {
   const storeddBlocks = localStorage.getItem('renderedBuildBlocks');
   const storedCells = localStorage.getItem('cells');
+  const storedInputBuildNameValue = localStorage.getItem('inputBuildNameValue');
 
   if (storeddBlocks && storedCells) {
     try {
@@ -41,6 +45,14 @@ onMounted(() => {
     } catch (error) {
       console.error('Failed to parse saved cells:', error);
       cells.value = [];
+    }
+  }
+
+  if (storedInputBuildNameValue) {
+    try {
+      inputBuildNameValue.value = JSON.parse(storedInputBuildNameValue) as string;
+    } catch (error) {
+      console.error('Failed to parse build name:', error);
     }
   }
 });
@@ -64,6 +76,7 @@ async function publishBuildToServer(
       front: imageFrontUrlKey,
       iso: imageIsoUrlKey,
     },
+    inputBuildName: inputBuildNameValue.value,
   };
 
   console.log('Saved build data:', savedBuildData);
@@ -95,6 +108,7 @@ function saveBuild(): void {
   );
   localStorage.setItem('renderedBuildBlocks', JSON.stringify(renderedBuildBlocks.value));
   localStorage.setItem('cells', JSON.stringify(cells.value));
+  localStorage.setItem('inputBuildNameValue', JSON.stringify(inputBuildNameValue.value));
 }
 
 function clearBuildGridAlert(msgCanceled: string, msgClearGrid: string): void {
@@ -128,6 +142,7 @@ const cells = ref<Cell[]>([]);
 const renderedBuildBlocks = ref<RenderedBuildBlock[]>([]);
 const hoverColor: Ref<string> = ref('red');
 const isExpanded = ref(false);
+const inputBuildNameValue = ref('Pick a cool name!');
 
 function setupGridCells(columnCount: number, rowCount: number) {
   cells.value = [];
@@ -352,19 +367,26 @@ const getCursorType = computed(() => {
     return CURSOR_TYPES.NOT_ALLOWED;
   };
 });
+
+const handleUpdate = (newValue: string) => {
+  inputBuildNameValue.value = newValue;
+};
 </script>
 
 <template>
-  <div v-if="props.columnCount && props.columnCount > 13" class="tools-bar">
-    <!-- <button>
-      <span :style="{ color: props.activeBuildColor }">{{ props.activeBuildColor }}&nbsp;</span>
-    </button> -->
-
-    <button @click="isExpanded = !isExpanded">
-      <span v-if="isExpanded">🔍➖</span>
-      <span v-else>🔍➕</span>
-    </button>
+  <div class="input-like-text-wrapper">
+    <InputLikeText :value="inputBuildNameValue" @update:value="handleUpdate" />
   </div>
+
+  <ToolsBar
+    :columnCount="props.columnCount ?? 0"
+    :isExpanded="isExpanded"
+    @toggle-expand="isExpanded = !isExpanded"
+    size="half"
+    class="input-like-text"
+    :ismobile="isMobile"
+  />
+
   <div class="build-gri-wrapper">
     <div
       class="build-grid"
@@ -440,10 +462,11 @@ const getCursorType = computed(() => {
 }
 
 .build-grid {
+  padding: 1px 5px 2px;
   cursor: grab;
   display: grid;
   background-color: #ce93d8;
-  border: 1px solid #ce93d8;
+  border: 0px solid #ce93d8;
   gap: 2px;
   overflow-x: auto;
   overflow-y: clip;
@@ -512,30 +535,23 @@ const getCursorType = computed(() => {
   position: relative;
 }
 
-.tools-bar {
-  text-align: right;
-  padding: 12px 20px;
-  border: 1px solid lightgray;
-  border-bottom: none;
-  position: sticky;
-  top: 0;
-  z-index: 500;
+.input-like-text-wrapper {
+  display: inline-block;
+  width: 50%;
+  padding-right: 130px;
+  box-sizing: border-box;
 }
 
-.tools-bar button {
-  min-height: 42px;
-  margin-left: 5px;
-}
+@media (max-width: 768px) {
+  .input-like-text-wrapper {
+    width: 100%;
+    padding-right: 0;
+    padding-bottom: 30px;
+  }
 
-.tools-bar button {
-  padding: 8px 18px;
-  font-size: 1rem;
-  color: white;
-  border: 2px solid lightgray;
-  background-color: #fff;
-  /* border: none; */
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  .input-like-text {
+    width: 100%;
+    padding: 15px;
+  }
 }
 </style>

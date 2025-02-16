@@ -28,3 +28,35 @@ export function debounce<T extends (...args: any[]) => void>(
     timeout = setTimeout(() => fn(...args), delay);
   };
 }
+
+/**
+ * Throttles a function, ensuring it's called at most once every `limit` milliseconds.
+ * @param fn - The function to throttle.
+ * @param limit - The throttle delay in milliseconds.
+ * @returns A throttled version of the function.
+ */
+export function throttle<T extends (...args: any[]) => void>(
+  fn: T,
+  limit: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+  let timeout: NodeJS.Timeout | null = null;
+
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+
+    if (now - lastCall >= limit) {
+      lastCall = now;
+      fn(...args);
+    } else {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(
+        () => {
+          lastCall = Date.now();
+          fn(...args);
+        },
+        limit - (now - lastCall)
+      );
+    }
+  };
+}

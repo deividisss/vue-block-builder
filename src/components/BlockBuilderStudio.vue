@@ -12,6 +12,11 @@ import ColorPicker from '@radial-color-picker/vue-color-picker';
 import '@radial-color-picker/vue-color-picker/dist/vue-color-picker.min.css';
 
 // TODO: Save to local storage loader
+// TODO: Mobile Column = 6; Row = 9
+// Name feature with profanity
+// Block count
+// Dark mode
+// TODO: Fullscreen mode with save state
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -39,6 +44,8 @@ const TRANSLATIONS = {
   CHANGE_COLUMN_COUNT: `Changing the column count will delete the current blocks in the grid. Do you want to proceed?`,
 };
 
+const isMobile = window.innerWidth <= 768;
+
 const columnCountRaw = ref(16);
 const tempColumnCountRaw = ref(columnCountRaw.value);
 const rowCountRaw = ref(6);
@@ -61,6 +68,12 @@ const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRAT
 const { isUploading, uploadImageToS3 } = useS3ImageUpload();
 
 onBeforeMount(() => {
+  columnCountRaw.value = isMobile ? 6 : 16;
+  tempColumnCountRaw.value = columnCountRaw.value;
+
+  rowCountRaw.value = isMobile ? 9 : 6;
+  tempRowCountRaw.value = rowCountRaw.value;
+
   const storedbuilgridSize = localStorage.getItem('builgridSize');
 
   if (storedbuilgridSize) {
@@ -292,6 +305,7 @@ const onInput = (newHue: number) => {
         :isDeleteModeActive="isDeleteModeActive"
         @hasRenderedBuildBlocks="setRenderedBlocksStatus"
         :activeBuildColor="hslToHex"
+        :isMobile="isMobile"
       >
         <template v-slot:TresCanvas><CaptureImage ref="captureImageRef" /></template>
         <div v-if="isPublishingBuild" class="build-block-list">
@@ -377,8 +391,6 @@ const onInput = (newHue: number) => {
             PUBLISH
           </li>
         </ul>
-        <br />
-        <br />
       </BuildGrid>
     </div>
 
@@ -420,9 +432,8 @@ input[type='number'] {
   padding: 20px;
   margin-top: -1px;
   align-items: center;
-  border-bottom-right-radius: 12px;
-  border-bottom-left-radius: 12px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  margin-bottom: -3px;
 }
 @media (max-width: 768px) {
   .build-block-list {

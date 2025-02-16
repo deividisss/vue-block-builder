@@ -62,7 +62,7 @@ const cameraTarget = computed<[number, number, number]>(() => {
 </script>
 
 <template>
-  <div>
+  <div class="build-grid-3d-wrapper">
     <div :class="['build-grid-3d', props.heightSize || 'medium']">
       <div v-if="isLoading" class="loader">
         <div class="spinner"></div>
@@ -191,7 +191,6 @@ const cameraTarget = computed<[number, number, number]>(() => {
 }
 
 canvas {
-  border: 1px dashed grey;
   border-radius: 6px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
 }
