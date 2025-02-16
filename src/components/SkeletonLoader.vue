@@ -37,7 +37,7 @@
   width: 100%;
   height: 400px;
   background-color: #e1bee7;
-  border: 1px solid transparent;
+  border: 0px solid transparent;
   border-radius: 6px;
   position: relative;
   overflow: hidden;

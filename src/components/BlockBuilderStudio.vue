@@ -12,6 +12,11 @@ import ColorPicker from '@radial-color-picker/vue-color-picker';
 import '@radial-color-picker/vue-color-picker/dist/vue-color-picker.min.css';
 
 // TODO: Save to local storage loader
+// TODO: Mobile Column = 6; Row = 9
+// Name feature with profanity
+// Block count
+// Dark mode
+// TODO: Fullscreen mode with save state
 
 const BUILD_BLOCK_TYPES = {
   ONE_X: '1x',
@@ -377,8 +382,6 @@ const onInput = (newHue: number) => {
             PUBLISH
           </li>
         </ul>
-        <br />
-        <br />
       </BuildGrid>
     </div>
 
@@ -420,9 +423,8 @@ input[type='number'] {
   padding: 20px;
   margin-top: -1px;
   align-items: center;
-  border-bottom-right-radius: 12px;
-  border-bottom-left-radius: 12px;
   box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+  margin-bottom: -3px;
 }
 @media (max-width: 768px) {
   .build-block-list {
