@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useSticky } from '@/composables/useSticky';
 import { ref } from 'vue';
+import { useSticky } from '@/composables/useSticky';
 
 type ToolsBarSize = 'full' | 'half';
 
@@ -65,7 +65,7 @@ const { isSticky } = useSticky(toolsBarRef);
   border-left: 4px dashed transparent;
   border-right: 4px dashed transparent;
   background-color: transparent;
-  transition: border ease-in-out 0.04s;
+  transition: border ease-in-out 0.018s;
 }
 
 .tools-bar button {

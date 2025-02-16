@@ -66,6 +66,14 @@ const { isGeneratingImageUrl, getPreSignedUrl } = usePreSignedUrl(API_URL_GENRAT
 const { isUploading, uploadImageToS3 } = useS3ImageUpload();
 
 onBeforeMount(() => {
+  const isMobile = window.innerWidth <= 768;
+
+  columnCountRaw.value = isMobile ? 6 : 16;
+  tempColumnCountRaw.value = columnCountRaw.value;
+
+  rowCountRaw.value = isMobile ? 9 : 6;
+  tempRowCountRaw.value = rowCountRaw.value;
+
   const storedbuilgridSize = localStorage.getItem('builgridSize');
 
   if (storedbuilgridSize) {

@@ -40,6 +40,7 @@ On the backend, **AWS Lambda, Amazon API Gateway, and DynamoDB** work seamlessly
 - Amazon API Gateway
 - DynamoDB
 - Amazon S3
+- Amazon CloudFront
 - Node.js
 
 ---
