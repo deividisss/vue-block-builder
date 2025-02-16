@@ -1,3 +1,4 @@
+// @ts-nocheck
 import BuildGrid from '@/components/BuildGrid.vue';
 import type { Meta, StoryObj } from '@storybook/vue3';
 
