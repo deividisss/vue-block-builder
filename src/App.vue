@@ -19,7 +19,11 @@ onMounted(() => {
   <main>
     <div class="wrapper">
       <div class="content">
-        <RouterView />
+        <router-view v-slot="{ Component }">
+          <keep-alive :include="['ExploreBuildsView']">
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </div>
     </div>
   </main>

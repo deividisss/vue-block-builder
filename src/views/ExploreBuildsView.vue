@@ -1,4 +1,5 @@
 <script setup lang="ts">
+defineOptions({ name: 'ExploreBuildsView' });
 import BuildGrid3D from '@/components/BuildGrid3D.vue';
 import IconSvgCube from '@/components/icons/IconSvgCube.vue';
 import SkeletonLoader from '@/components/SkeletonLoader.vue';
@@ -6,7 +7,7 @@ import { CAMERA_VIEWS, type CameraView } from '@/types/cameraConstants';
 import type { Cell } from '@/types/cell';
 import type { RenderedBuildBlock } from '@/types/renderedBuildBlock';
 import { debounce } from '@/utils/commonUtils';
-import { ref, onMounted, reactive } from 'vue';
+import { ref, onMounted, reactive, onActivated } from 'vue';
 
 interface BlockBuilderBuild {
   buildGridSize: {
@@ -21,6 +22,14 @@ interface BlockBuilderBuild {
     iso: string;
   };
 }
+
+onMounted(() => {
+  console.log('Component mounted');
+});
+
+onActivated(() => {
+  console.log('Component activated (restored from cache)');
+});
 
 // TODO: Implemnt skeleton loading
 // TODO: Implemnt tests
